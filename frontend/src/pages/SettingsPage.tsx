@@ -117,14 +117,20 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
-        <CopyField label="Check endpoint (n8n HTTP Request node, Flow A)" value="http://localhost:8000/api/checks/run" />
-        <CopyField label="Brief endpoint (Flow B)" value="http://localhost:8000/api/briefs/generate?days=7" />
+        <CopyField
+          label="Check endpoint (n8n HTTP Request node, Flow A)"
+          value="https://radar-api-1mdq.onrender.com/api/checks/run"
+        />
+        <CopyField
+          label="Brief endpoint (Flow B)"
+          value="https://radar-api-1mdq.onrender.com/api/briefs/generate?days=7"
+        />
         <p className="text-xs leading-5 text-gray-400">
-          Authenticate n8n requests with the <code className="rounded bg-gray-100 px-1">X-API-Key</code>{" "}
-          header set to the <code className="rounded bg-gray-100 px-1">SERVICE_API_KEY</code> from the
-          backend <code className="rounded bg-gray-100 px-1">.env</code>. To enable instant alert fanout
-          (Flow C), set <code className="rounded bg-gray-100 px-1">N8N_WEBHOOK_URL</code> in the backend{" "}
-          <code className="rounded bg-gray-100 px-1">.env</code> to the workflow's webhook URL.
+          The n8n "Radar" workflow is already configured and live: hourly checks (Flow A), the Monday
+          08:00 brief (Flow B), and instant alert fanout via webhook (Flow C). These endpoints are shown
+          for reference — n8n authenticates with the{" "}
+          <code className="rounded bg-gray-100 px-1">X-API-Key</code> header set to the backend's{" "}
+          <code className="rounded bg-gray-100 px-1">SERVICE_API_KEY</code>.
         </p>
       </div>
     </div>
