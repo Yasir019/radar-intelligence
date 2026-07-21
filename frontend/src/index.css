@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900;
+}
+
+/* Premium card primitive used across the app */
+.card {
+  @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+}
+
+.card-hover {
+  @apply transition-shadow duration-150 hover:shadow-md;
+}
+
+/* Markdown (brief) styling */
+.prose-brief h1 { @apply text-2xl font-semibold mt-2 mb-4 text-gray-900; }
+.prose-brief h2 { @apply text-lg font-semibold mt-6 mb-2 text-gray-900 border-b border-gray-100 pb-1; }
+.prose-brief h3 { @apply text-base font-semibold mt-4 mb-1 text-gray-800; }
+.prose-brief p  { @apply text-sm leading-6 text-gray-600 mb-3; }
+.prose-brief ul { @apply list-disc pl-5 mb-3 space-y-1; }
+.prose-brief ol { @apply list-decimal pl-5 mb-3 space-y-1; }
+.prose-brief li { @apply text-sm leading-6 text-gray-600; }
+.prose-brief strong { @apply text-gray-900 font-semibold; }

@@ -1,0 +1,402 @@
+{
+  "name": "Radar",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Flow A — Scheduled Competitor Check\nEvery hour: sweep all tracked URLs via the Radar API. New changes come back AI-analyzed. High-impact changes (≥7/10) are alerted to Slack.",
+        "height": 120,
+        "width": 480,
+        "color": 4
+      },
+      "id": "note-flow-a",
+      "name": "Sticky Note A",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-60, -180]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "trigger-hourly",
+      "name": "Every hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-40, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/api/checks/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "change-me-n8n-key"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "http-run-checks",
+      "name": "Run competitor checks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [180, 0]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "new_changes",
+        "options": {}
+      },
+      "id": "split-changes",
+      "name": "Split out changes",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [400, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "impact-gte-7",
+              "leftValue": "={{ $json.impact_score }}",
+              "rightValue": 7,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-high-impact",
+      "name": "High impact?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [620, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "REPLACE_WITH_SLACK_WEBHOOK_URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: `:rotating_light: *${$json.competitor_name}* — ${$json.category} (impact ${$json.impact_score}/10)\\n${$json.summary}\\n_Recommended:_ ${$json.recommended_action}\\n${$json.url}` }) }}",
+        "options": {}
+      },
+      "id": "slack-high-impact",
+      "name": "Slack: high-impact alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [860, -80]
+    },
+    {
+      "parameters": {
+        "content": "## Flow B — Weekly AI Brief\nEvery Monday 08:00: ask the Radar API to generate a 7-day competitive brief (written by the LLM), convert markdown → HTML, and deliver to Slack.",
+        "height": 120,
+        "width": 480,
+        "color": 5
+      },
+      "id": "note-flow-b",
+      "name": "Sticky Note B",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-60, 240]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "weeksInterval": 1,
+              "triggerAtDay": [1],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "trigger-weekly",
+      "name": "Monday 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-40, 420]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/api/briefs/generate",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "days",
+              "value": "7"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "change-me-n8n-key"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "http-generate-brief",
+      "name": "Generate weekly brief",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [180, 420]
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.content_md }}",
+        "options": {}
+      },
+      "id": "md-to-html",
+      "name": "Markdown → HTML",
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [400, 420]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "REPLACE_WITH_SLACK_WEBHOOK_URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $('Generate weekly brief').item.json.content_md }) }}",
+        "options": {}
+      },
+      "id": "slack-brief",
+      "name": "Slack: deliver brief",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [620, 420]
+    },
+    {
+      "parameters": {
+        "content": "## Flow C — Instant Alert Fanout\nThe Radar backend POSTs every analyzed change to this webhook the moment it is detected (set N8N_WEBHOOK_URL in backend .env). Pricing changes route to the pricing channel; everything else to the general intel channel.",
+        "height": 140,
+        "width": 480,
+        "color": 6
+      },
+      "id": "note-flow-c",
+      "name": "Sticky Note C",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-60, 660]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "radar-alerts",
+        "options": {}
+      },
+      "id": "trigger-webhook",
+      "name": "Change webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-40, 860],
+      "webhookId": "radar-alerts"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "is-pricing",
+              "leftValue": "={{ $json.body.category }}",
+              "rightValue": "pricing_change",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-pricing",
+      "name": "Pricing change?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [180, 860]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "REPLACE_WITH_PRICING_CHANNEL_WEBHOOK_URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: `:moneybag: *${$json.body.competitor}* pricing change (impact ${$json.body.impact_score}/10)\\n${$json.body.summary}\\n${$json.body.url}` }) }}",
+        "options": {}
+      },
+      "id": "slack-pricing",
+      "name": "Slack: #pricing-intel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [420, 780]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "REPLACE_WITH_GENERAL_CHANNEL_WEBHOOK_URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: `:mag: *${$json.body.competitor}* — ${$json.body.category} (impact ${$json.body.impact_score}/10)\\n${$json.body.summary}\\n${$json.body.url}` }) }}",
+        "options": {}
+      },
+      "id": "slack-general",
+      "name": "Slack: #competitor-intel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [420, 940]
+    }
+  ],
+  "connections": {
+    "Every hour": {
+      "main": [
+        [
+          {
+            "node": "Run competitor checks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run competitor checks": {
+      "main": [
+        [
+          {
+            "node": "Split out changes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split out changes": {
+      "main": [
+        [
+          {
+            "node": "High impact?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "High impact?": {
+      "main": [
+        [
+          {
+            "node": "Slack: high-impact alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Monday 08:00": {
+      "main": [
+        [
+          {
+            "node": "Generate weekly brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate weekly brief": {
+      "main": [
+        [
+          {
+            "node": "Markdown → HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown → HTML": {
+      "main": [
+        [
+          {
+            "node": "Slack: deliver brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Change webhook": {
+      "main": [
+        [
+          {
+            "node": "Pricing change?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pricing change?": {
+      "main": [
+        [
+          {
+            "node": "Slack: #pricing-intel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slack: #competitor-intel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
