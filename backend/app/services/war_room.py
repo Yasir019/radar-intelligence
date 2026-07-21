@@ -1,5 +1,7 @@
 import json
 import logging
+import time
+from collections.abc import Iterator
 from datetime import timedelta
 
 from sqlalchemy.orm import Session
@@ -66,64 +68,73 @@ def _transcript_text(transcript: list[dict]) -> str:
     return "\n\n".join(f"{t['speaker']}: {t['text']}" for t in transcript)
 
 
-def run_debate(db: Session, user: User, competitor: Competitor, rounds: int = 3) -> WarRoom:
+def generate_turns(db: Session, competitor: Competitor, rounds: int = 3) -> Iterator[dict]:
+    """Yield debate turns one at a time, as each is generated."""
     if settings.effective_demo_mode:
-        transcript = _DEMO_TRANSCRIPT[: rounds * 2] + [_DEMO_TRANSCRIPT[-1]]
-    else:
-        from groq import Groq
+        for turn_dict in _DEMO_TRANSCRIPT[: rounds * 2] + [_DEMO_TRANSCRIPT[-1]]:
+            time.sleep(1.2)  # simulate generation so the demo streams realistically
+            yield turn_dict
+        return
 
-        client = Groq(api_key=settings.groq_api_key)
-        moves = _competitor_moves(db, competitor)
+    from groq import Groq
 
-        def turn(system: str, instruction: str) -> str:
-            # gpt-oss is a reasoning model: give headroom so reasoning tokens
-            # don't starve the visible answer, and retry once if it comes back empty.
-            for attempt_tokens in (900, 1800):
-                completion = client.chat.completions.create(
-                    model=settings.groq_model,
-                    messages=[
-                        {"role": "system", "content": system.format(competitor=competitor.name)},
-                        {
-                            "role": "user",
-                            "content": (
-                                f"{competitor.name}'s recent tracked moves:\n{moves}\n\n"
-                                f"Debate so far:\n{_transcript_text(transcript) or '(debate is starting)'}\n\n"
-                                f"{instruction}"
-                            ),
-                        },
-                    ],
-                    max_tokens=attempt_tokens,
-                )
-                text = (completion.choices[0].message.content or "").strip()
-                if text:
-                    return text
-            return "(strategist paused — no argument delivered this turn)"
+    client = Groq(api_key=settings.groq_api_key)
+    moves = _competitor_moves(db, competitor)
+    transcript: list[dict] = []
 
-        transcript: list[dict] = []
-        for round_number in range(1, rounds + 1):
-            attack = turn(
-                ATTACKER_SYSTEM,
-                f"Round {round_number}/{rounds}. Deliver your attack now."
-                + (" Open the debate with your strongest move." if round_number == 1 else " Escalate — counter their last defense."),
+    def turn(system: str, instruction: str) -> str:
+        # gpt-oss is a reasoning model: give headroom so reasoning tokens
+        # don't starve the visible answer, and retry once if it comes back empty.
+        for attempt_tokens in (900, 1800):
+            completion = client.chat.completions.create(
+                model=settings.groq_model,
+                messages=[
+                    {"role": "system", "content": system.format(competitor=competitor.name)},
+                    {
+                        "role": "user",
+                        "content": (
+                            f"{competitor.name}'s recent tracked moves:\n{moves}\n\n"
+                            f"Debate so far:\n{_transcript_text(transcript) or '(debate is starting)'}\n\n"
+                            f"{instruction}"
+                        ),
+                    },
+                ],
+                max_tokens=attempt_tokens,
             )
-            transcript.append({
-                "role": "attacker",
-                "speaker": f"{competitor.name} — Chief Strategist",
-                "text": attack,
-            })
-            defense = turn(
-                DEFENDER_SYSTEM,
-                f"Round {round_number}/{rounds}. Counter the attacker's latest argument now.",
-            )
-            transcript.append({
-                "role": "defender",
-                "speaker": "Our VP of Strategy",
-                "text": defense,
-            })
+            text = (completion.choices[0].message.content or "").strip()
+            if text:
+                return text
+        return "(strategist paused — no argument delivered this turn)"
 
-        verdict = turn(REFEREE_SYSTEM, "The debate has ended. Deliver your verdict now.")
-        transcript.append({"role": "verdict", "speaker": "Referee — Neutral Analyst", "text": verdict})
+    for round_number in range(1, rounds + 1):
+        attack = turn(
+            ATTACKER_SYSTEM,
+            f"Round {round_number}/{rounds}. Deliver your attack now."
+            + (" Open the debate with your strongest move." if round_number == 1 else " Escalate — counter their last defense."),
+        )
+        attack_turn = {
+            "role": "attacker",
+            "speaker": f"{competitor.name} — Chief Strategist",
+            "text": attack,
+        }
+        transcript.append(attack_turn)
+        yield attack_turn
 
+        defense = turn(
+            DEFENDER_SYSTEM,
+            f"Round {round_number}/{rounds}. Counter the attacker's latest argument now.",
+        )
+        defense_turn = {"role": "defender", "speaker": "Our VP of Strategy", "text": defense}
+        transcript.append(defense_turn)
+        yield defense_turn
+
+    verdict = turn(REFEREE_SYSTEM, "The debate has ended. Deliver your verdict now.")
+    yield {"role": "verdict", "speaker": "Referee — Neutral Analyst", "text": verdict}
+
+
+def save_debate(
+    db: Session, user: User, competitor: Competitor, rounds: int, transcript: list[dict]
+) -> WarRoom:
     war_room = WarRoom(
         user_id=user.id,
         competitor_id=competitor.id,
@@ -134,3 +145,8 @@ def run_debate(db: Session, user: User, competitor: Competitor, rounds: int = 3)
     db.commit()
     db.refresh(war_room)
     return war_room
+
+
+def run_debate(db: Session, user: User, competitor: Competitor, rounds: int = 3) -> WarRoom:
+    transcript = list(generate_turns(db, competitor, rounds))
+    return save_debate(db, user, competitor, rounds, transcript)
