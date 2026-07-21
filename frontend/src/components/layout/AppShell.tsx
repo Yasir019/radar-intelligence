@@ -1,4 +1,4 @@
-import { Building2, FileText, LayoutDashboard, LogOut, Radar, Settings } from "lucide-react";
+import { Building2, FileText, LayoutDashboard, LogOut, Radar, Settings, Swords } from "lucide-react";
 import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -7,6 +7,7 @@ import { NotificationBell } from "../NotificationBell";
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/competitors", label: "Competitors", icon: Building2 },
+  { to: "/warroom", label: "War Room", icon: Swords },
   { to: "/brief", label: "AI Brief", icon: FileText },
   { to: "/settings", label: "Settings", icon: Settings },
 ];

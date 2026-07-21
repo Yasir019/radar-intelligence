@@ -13,6 +13,7 @@ from app.routers import (
     notifications,
     settings_router,
     stats,
+    warroom,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -41,6 +42,7 @@ app.include_router(briefs.router)
 app.include_router(notifications.router)
 app.include_router(settings_router.router)
 app.include_router(stats.router)
+app.include_router(warroom.router)
 
 
 @app.get("/api/health")

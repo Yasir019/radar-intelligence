@@ -153,6 +153,24 @@ class BriefOut(BaseModel):
     generated_at: datetime
 
 
+# ---------- War Room ----------
+
+class WarRoomTurn(BaseModel):
+    role: Literal["attacker", "defender", "verdict"]
+    speaker: str
+    text: str
+
+
+class WarRoomOut(BaseModel):
+    id: int
+    competitor_id: int
+    competitor_name: str
+    competitor_color: str
+    rounds: int
+    transcript: list[WarRoomTurn]
+    created_at: datetime
+
+
 # ---------- Settings ----------
 
 class SettingsOut(BaseModel):

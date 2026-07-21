@@ -132,3 +132,16 @@ class Brief(Base):
     generated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     user: Mapped[User] = relationship(back_populates="briefs")
+
+
+class WarRoom(Base):
+    __tablename__ = "war_rooms"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    competitor_id: Mapped[int] = mapped_column(ForeignKey("competitors.id"), index=True)
+    rounds: Mapped[int] = mapped_column(Integer, default=3)
+    transcript_json: Mapped[str] = mapped_column(Text)  # list of {role, speaker, text}
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    competitor: Mapped[Competitor] = relationship()
