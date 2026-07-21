@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+backend/.venv/
+backend/.env
+backend/radar.db
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Misc
+.DS_Store
+*.log
+
+# MCP config contains an auth token — never commit
+.mcp.json
+
+# Local Claude Code settings
+.claude/
