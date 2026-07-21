@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://radar-api-1mdq.onrender.com/api/:path*"
+    }
+  ]
+}
