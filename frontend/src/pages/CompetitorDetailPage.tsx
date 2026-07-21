@@ -70,8 +70,8 @@ export default function CompetitorDetailPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800">
-        <ArrowLeft size={15} /> Back to dashboard
+      <Link to="/competitors" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800">
+        <ArrowLeft size={15} /> Back to competitors
       </Link>
 
       <div className="card p-6">

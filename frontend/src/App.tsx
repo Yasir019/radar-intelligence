@@ -4,6 +4,7 @@ import { useAuth } from "./context/AuthContext";
 import BriefPage from "./pages/BriefPage";
 import ChangeDetailPage from "./pages/ChangeDetailPage";
 import CompetitorDetailPage from "./pages/CompetitorDetailPage";
+import CompetitorsPage from "./pages/CompetitorsPage";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -32,6 +33,7 @@ export default function App() {
     <AppShell>
       <Routes>
         <Route path="/" element={<DashboardPage />} />
+        <Route path="/competitors" element={<CompetitorsPage />} />
         <Route path="/competitors/:id" element={<CompetitorDetailPage />} />
         <Route path="/changes/:id" element={<ChangeDetailPage />} />
         <Route path="/brief" element={<BriefPage />} />

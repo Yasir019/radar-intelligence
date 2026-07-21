@@ -1,14 +1,11 @@
-import { Activity, AlertTriangle, Building2, Link2, Loader2, Plus, RefreshCw } from "lucide-react";
+import { Activity, AlertTriangle, Building2, Link2, Loader2, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
-import type { ChangeEvent, Competitor, StatsOverview } from "../api/types";
+import type { ChangeEvent, StatsOverview } from "../api/types";
 import { ActivityChart } from "../components/ActivityChart";
 import { ChangeTimeline } from "../components/ChangeTimeline";
-import { CompetitorCard } from "../components/CompetitorCard";
 import { ImpactChart } from "../components/ImpactChart";
-import { inputClass, Modal, primaryBtn, secondaryBtn } from "../components/Modal";
-
-const COLORS = ["#6366f1", "#0ea5e9", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6"];
+import { secondaryBtn } from "../components/Modal";
 
 function StatCard({
   icon: Icon,
@@ -37,49 +34,17 @@ function StatCard({
 export default function DashboardPage() {
   const [stats, setStats] = useState<StatsOverview | null>(null);
   const [changes, setChanges] = useState<ChangeEvent[]>([]);
-  const [competitors, setCompetitors] = useState<Competitor[]>([]);
-  const [addOpen, setAddOpen] = useState(false);
   const [checkingAll, setCheckingAll] = useState(false);
-
-  const [name, setName] = useState("");
-  const [website, setWebsite] = useState("");
-  const [saving, setSaving] = useState(false);
 
   const load = () =>
     Promise.all([
       api.get<StatsOverview>("/stats/overview").then((r) => setStats(r.data)),
-      api.get<ChangeEvent[]>("/changes?limit=8").then((r) => setChanges(r.data)),
-      api.get<Competitor[]>("/competitors").then((r) => setCompetitors(r.data)),
+      api.get<ChangeEvent[]>("/changes?limit=10").then((r) => setChanges(r.data)),
     ]);
 
   useEffect(() => {
     load();
   }, []);
-
-  const changesByCompetitor = new Map<number, number>();
-  for (const c of changes) {
-    if (c.competitor_id != null) {
-      changesByCompetitor.set(c.competitor_id, (changesByCompetitor.get(c.competitor_id) ?? 0) + 1);
-    }
-  }
-
-  const addCompetitor = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await api.post("/competitors", {
-        name,
-        website: website.startsWith("http") ? website : `https://${website}`,
-        color: COLORS[competitors.length % COLORS.length],
-      });
-      setAddOpen(false);
-      setName("");
-      setWebsite("");
-      load();
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const checkAll = async () => {
     setCheckingAll(true);
@@ -100,16 +65,10 @@ export default function DashboardPage() {
             What your competitors changed, analyzed by AI
           </p>
         </div>
-        <div className="flex gap-2">
-          <button onClick={checkAll} disabled={checkingAll} className={secondaryBtn}>
-            {checkingAll ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
-            Check all now
-          </button>
-          <button onClick={() => setAddOpen(true)} className={primaryBtn}>
-            <Plus size={15} />
-            Add competitor
-          </button>
-        </div>
+        <button onClick={checkAll} disabled={checkingAll} className={secondaryBtn}>
+          {checkingAll ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
+          Check all now
+        </button>
       </div>
 
       {stats && (
@@ -129,47 +88,6 @@ export default function DashboardPage() {
       )}
 
       <ChangeTimeline changes={changes} />
-
-      <div>
-        <h2 className="mb-3 text-sm font-semibold text-gray-900">Competitors</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {competitors.map((c) => (
-            <CompetitorCard
-              key={c.id}
-              competitor={c}
-              changeCount={changesByCompetitor.get(c.id) ?? 0}
-            />
-          ))}
-        </div>
-        {competitors.length === 0 && (
-          <div className="card p-10 text-center text-sm text-gray-400">
-            No competitors yet — add your first one to start monitoring.
-          </div>
-        )}
-      </div>
-
-      <Modal title="Add competitor" open={addOpen} onClose={() => setAddOpen(false)}>
-        <form onSubmit={addCompetitor} className="space-y-3">
-          <input
-            required
-            placeholder="Company name (e.g. Acme Analytics)"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={inputClass}
-          />
-          <input
-            required
-            placeholder="Website (e.g. acme.com)"
-            value={website}
-            onChange={(e) => setWebsite(e.target.value)}
-            className={inputClass}
-          />
-          <button type="submit" disabled={saving} className={`${primaryBtn} w-full`}>
-            {saving && <Loader2 size={14} className="animate-spin" />}
-            Add competitor
-          </button>
-        </form>
-      </Modal>
     </div>
   );
 }
