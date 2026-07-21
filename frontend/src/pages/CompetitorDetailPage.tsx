@@ -1,4 +1,4 @@
-import { ArrowLeft, Globe, Loader2, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Globe, Loader2, Monitor, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api/client";
@@ -117,6 +117,45 @@ export default function CompetitorDetailPage() {
           {notice}
         </div>
       )}
+
+      <div className="card overflow-hidden">
+        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+              <Monitor size={15} />
+            </span>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">Live website</h3>
+              <p className="text-[11px] text-gray-400">
+                {competitor.website.replace(/^https?:\/\//, "")} — scroll inside to explore
+              </p>
+            </div>
+          </div>
+          <a
+            href={competitor.website}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            <ExternalLink size={13} />
+            Open site
+          </a>
+        </div>
+        <div className="relative h-[560px] bg-gray-50">
+          <iframe
+            src={competitor.website}
+            title={`${competitor.name} website preview`}
+            className="h-full w-full border-0"
+            sandbox="allow-scripts allow-same-origin allow-popups"
+            loading="lazy"
+          />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center pb-2">
+            <span className="rounded-full bg-gray-900/70 px-3 py-1 text-[11px] text-white backdrop-blur-sm">
+              Some sites block embedding — use "Open site" if the preview stays blank
+            </span>
+          </div>
+        </div>
+      </div>
 
       <div className="card">
         <div className="border-b border-gray-100 px-5 py-4">
