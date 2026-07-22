@@ -3,152 +3,180 @@ import {
   Bell,
   BrainCircuit,
   Check,
-  CheckCircle2,
   FileText,
   GitCompareArrows,
   Globe,
   Loader2,
   Radar as RadarIcon,
-  Sparkles,
-  Star,
+  Shield,
   Swords,
-  TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-/* ---------------------------------- data ---------------------------------- */
+/* ------------------------------------------------------------------ */
+/*  The concept: Radar is an intelligence operation for your market.  */
+/*  Radar screen → live intel ticker → one change told minute-by-     */
+/*  minute → capabilities dossier → War Room. No template borrowed.   */
+/* ------------------------------------------------------------------ */
 
-const FEATURE_CARDS = [
+const TICKER_ITEMS = [
+  { name: "Acme Analytics", event: "cut Pro pricing −13%", impact: 8 },
+  { name: "PipelineHQ", event: "shipped AI reporting", impact: 7 },
+  { name: "Metricly", event: "added RBAC + audit logs", impact: 7 },
+  { name: "DashForge", event: "3 months free promo", impact: 3 },
+  { name: "PipelineHQ", event: "launched free tier", impact: 6 },
+  { name: "Acme Analytics", event: "embedded analytics", impact: 6 },
+  { name: "Metricly", event: "hid enterprise pricing", impact: 5 },
+];
+
+const BLIPS = [
+  { label: "AC", color: "#818cf8", top: "22%", left: "64%", delay: "0s" },
+  { label: "PH", color: "#38bdf8", top: "58%", left: "74%", delay: "0.5s" },
+  { label: "MT", color: "#fbbf24", top: "70%", left: "32%", delay: "1s" },
+  { label: "DF", color: "#34d399", top: "34%", left: "24%", delay: "1.5s" },
+];
+
+const CAPABILITIES = [
   {
-    icon: BrainCircuit,
-    tint: "bg-indigo-50 border-indigo-100",
-    iconTint: "bg-indigo-100 text-indigo-600",
-    title: "AI Impact Analysis",
-    text: "Every change is scored 1-10 by an LLM with a summary and one concrete recommended action — schema-enforced, never vague.",
+    code: "CAP-01",
+    icon: Globe,
+    title: "Round-the-clock surveillance",
+    text: "Hourly automated sweeps of every pricing page, changelog and feature page you point Radar at — driven by an n8n workflow that never sleeps, never forgets.",
+    wide: true,
   },
   {
+    code: "CAP-02",
     icon: GitCompareArrows,
-    tint: "bg-emerald-50 border-emerald-100",
-    iconTint: "bg-emerald-100 text-emerald-600",
-    title: "Change Detection",
-    text: "Content hashing catches every meaningful edit. Line-by-line diffs show exactly what changed — old in red, new in green.",
+    title: "Forensic diffs",
+    text: "Content fingerprinting catches every meaningful edit. Line-by-line evidence: removed in red, added in green.",
+    wide: false,
   },
   {
+    code: "CAP-03",
+    icon: BrainCircuit,
+    title: "AI verdict on every change",
+    text: "Summary, category, 1-10 impact score, one recommended action — schema-enforced JSON, validated before it reaches you.",
+    wide: false,
+  },
+  {
+    code: "CAP-04",
     icon: Bell,
-    tint: "bg-violet-50 border-violet-100",
-    iconTint: "bg-violet-100 text-violet-600",
-    title: "Smart Slack Routing",
-    text: "High-impact changes hit Slack instantly. Pricing moves route to your pricing channel — the noise never reaches your team.",
+    title: "Alerts that route themselves",
+    text: "Pricing intel to the pricing channel, product intel to product. High-impact only — the noise never leaves the database.",
+    wide: false,
   },
   {
-    icon: Swords,
-    tint: "bg-amber-50 border-amber-100",
-    iconTint: "bg-amber-100 text-amber-600",
-    title: "AI War Room",
-    text: "Two AI strategists debate live — theirs attacks with their real tracked moves, yours defends. A referee delivers the verdict.",
-  },
-];
-
-const STEPS = [
-  {
-    step: "1",
-    title: "Add competitors",
-    text: "Point Radar at their pricing, changelog and feature pages. Setup takes two minutes — then you never touch it again.",
-  },
-  {
-    step: "2",
-    title: "AI watches for you",
-    text: "Automated hourly sweeps detect every change. The AI reads the diff, classifies it, and scores its competitive impact.",
-  },
-  {
-    step: "3",
-    title: "Act before they win",
-    text: "Instant Slack alerts, weekly executive briefs and recommended actions — respond in hours, not weeks.",
-  },
-];
-
-const CHECKLIST = [
-  "Only the changed content is analyzed — fast, focused and cost-efficient",
-  "Cosmetic churn scored low, so your team is never spammed",
-  "Weekly executive briefs written by AI, delivered to Slack every Monday",
-  "Full change history with diffs — evidence for every strategic call",
-];
-
-const PRICING = [
-  {
-    name: "Starter",
-    price: "$0",
-    tag: "Perfect for trying Radar out.",
-    popular: false,
-    features: ["3 competitors", "Hourly automated checks", "AI impact analysis", "In-app alerts"],
-    cta: "Get started",
-  },
-  {
-    name: "Growth",
-    price: "$49",
-    tag: "For teams that compete to win.",
-    popular: true,
-    features: [
-      "Unlimited competitors",
-      "Slack alerts & channel routing",
-      "AI weekly executive briefs",
-      "AI War Room debates",
-      "Priority AI analysis",
-    ],
-    cta: "Start free trial",
-  },
-];
-
-const TESTIMONIALS = [
-  {
-    quote:
-      "We found out about a competitor's pricing change the same morning it happened — and had a counter-offer approved before lunch. That used to take us three weeks.",
-    name: "Sarah K.",
-    role: "VP Sales · B2B SaaS",
-    stars: 5,
-  },
-  {
-    quote:
-      "The weekly brief replaced a half-day of manual competitor research. My leadership team actually reads it — it's that sharp.",
-    name: "Daniel M.",
-    role: "Head of Product Marketing",
-    stars: 5,
-  },
-  {
-    quote:
-      "The War Room sounds like a gimmick until you watch it argue your own weaknesses better than your board does. Genuinely useful prep.",
-    name: "Ayesha R.",
-    role: "Founder · Martech startup",
-    stars: 4,
+    code: "CAP-05",
+    icon: FileText,
+    title: "Monday morning briefing",
+    text: "An AI-written executive brief covering the week: highlights per competitor, threats, opportunities, numbered actions. In Slack before your coffee.",
+    wide: true,
   },
 ];
 
 const FAQS = [
   {
-    q: "How does Radar detect changes?",
-    a: "Radar fetches each tracked page on a schedule, strips the noise (menus, scripts, footers), and fingerprints the content. When the fingerprint changes, the old and new versions are diffed line-by-line and sent to the AI for analysis.",
+    q: "How fast will I know about a change?",
+    a: "Pages are swept hourly. From the moment a sweep catches a change, the AI verdict and Slack alert land within seconds — so worst case, about an hour after the competitor hits publish.",
   },
   {
-    q: "Which pages should I track?",
-    a: "Pricing pages, changelogs, feature pages and blogs give the strongest signal. Most teams track 3-5 pages per competitor.",
+    q: "Will tiny cosmetic edits spam me?",
+    a: "No. The AI scores cosmetic churn (dates, typos, styling) 1-2 out of 10, and only changes above your threshold leave the app. You control the threshold per account.",
   },
   {
-    q: "Will I get spammed with tiny changes?",
-    a: "No. The AI classifies cosmetic edits (dates, typos, styling) with a low impact score, and only changes above your threshold trigger external alerts. You control the threshold.",
+    q: "What exactly does the AI produce?",
+    a: "A structured verdict for every change: a 2-3 sentence summary, a category (pricing / feature / messaging / promotion), a 1-10 impact score, and one concrete recommended action. It's schema-validated JSON, not freeform text.",
   },
   {
-    q: "What powers the AI analysis?",
-    a: "An LLM pipeline (Groq gpt-oss-120b) with schema-enforced JSON output — every analysis has a summary, category, 1-10 impact score and a recommended action, validated before it's stored.",
+    q: "What is the War Room?",
+    a: "A live debate between two AI strategists — one argues as your competitor using their real tracked moves, one defends your position. A neutral AI referee scores the exchange and hands you three takeaways.",
   },
   {
     q: "Can I try it without signing up?",
-    a: "Yes — the live demo is pre-loaded with 4 competitors and 30 days of AI-analyzed changes. One click, no credit card, no email.",
+    a: "Yes. The live demo is pre-loaded with 4 competitors and 30 days of analyzed changes. One click — no card, no email.",
   },
 ];
 
-/* -------------------------------- component -------------------------------- */
+/* ------------------------------ pieces ------------------------------ */
+
+function RadarScreen() {
+  return (
+    <div className="relative mx-auto aspect-square w-full max-w-[420px]">
+      {/* outer glow */}
+      <div className="absolute inset-0 rounded-full bg-indigo-500/10 blur-3xl" />
+      {/* screen */}
+      <div className="absolute inset-0 overflow-hidden rounded-full border border-indigo-900/60 bg-[#0a0f1e] shadow-[0_0_80px_-20px_rgba(99,102,241,0.5)]">
+        {/* rings */}
+        {[18, 34, 50].map((inset) => (
+          <div
+            key={inset}
+            className="absolute rounded-full border border-indigo-500/15"
+            style={{ inset: `${inset}%` }}
+          />
+        ))}
+        <div className="absolute inset-[4%] rounded-full border border-indigo-500/25" />
+        {/* crosshairs */}
+        <div className="absolute left-1/2 top-0 h-full w-px bg-indigo-500/10" />
+        <div className="absolute top-1/2 left-0 h-px w-full bg-indigo-500/10" />
+        {/* sweep */}
+        <div
+          className="animate-radar-sweep absolute inset-0 rounded-full"
+          style={{
+            background:
+              "conic-gradient(from 0deg, rgba(129,140,248,0.35) 0deg, rgba(129,140,248,0.12) 40deg, transparent 90deg)",
+          }}
+        />
+        {/* blips */}
+        {BLIPS.map((b) => (
+          <div key={b.label} className="absolute" style={{ top: b.top, left: b.left }}>
+            <span
+              className="animate-blip block h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: b.color, animationDelay: b.delay, boxShadow: `0 0 12px ${b.color}` }}
+            />
+            <span className="mt-1 block font-mono text-[9px] tracking-wider" style={{ color: b.color }}>
+              {b.label}
+            </span>
+          </div>
+        ))}
+        {/* center */}
+        <div className="absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-300 shadow-[0_0_10px_rgba(165,180,252,0.9)]" />
+      </div>
+      {/* corner readouts */}
+      <div className="absolute -left-2 top-6 rounded-md border border-indigo-500/20 bg-[#0a0f1e]/90 px-2.5 py-1.5 font-mono text-[10px] text-indigo-300">
+        SWEEP #4,412 · ACTIVE
+      </div>
+      <div className="absolute -right-2 bottom-8 rounded-md border border-emerald-500/20 bg-[#0a0f1e]/90 px-2.5 py-1.5 font-mono text-[10px] text-emerald-300">
+        16 PAGES · 4 TARGETS
+      </div>
+    </div>
+  );
+}
+
+function Ticker() {
+  const items = [...TICKER_ITEMS, ...TICKER_ITEMS]; // duplicated for seamless loop
+  return (
+    <div className="overflow-hidden border-y border-gray-100 bg-gray-50/80 py-3">
+      <div className="animate-ticker flex w-max items-center gap-10">
+        {items.map((item, i) => (
+          <span key={i} className="flex shrink-0 items-center gap-2 font-mono text-xs text-gray-500">
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${item.impact >= 7 ? "bg-red-400" : item.impact >= 4 ? "bg-amber-400" : "bg-gray-300"}`}
+            />
+            <span className="font-semibold text-gray-700">{item.name}</span>
+            {item.event}
+            <span className={`${item.impact >= 7 ? "text-red-500" : "text-gray-400"}`}>
+              [{item.impact}/10]
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------- page ------------------------------- */
 
 export default function LandingPage() {
   const { login } = useAuth();
@@ -169,373 +197,309 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900">
-      {/* ------------------------------- nav ------------------------------- */}
-      <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+      {/* nav */}
+      <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/85 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <div className="flex items-center gap-2.5">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
               <RadarIcon size={17} className="text-white" />
             </span>
-            <span className="font-display text-[16px] font-bold tracking-tight">Radar</span>
+            <span className="font-display text-[16px] font-semibold tracking-tight">Radar</span>
           </div>
           <nav className="hidden items-center gap-8 text-sm font-medium text-gray-500 md:flex">
-            <a href="#features" className="transition hover:text-gray-900">Features</a>
-            <a href="#how" className="transition hover:text-gray-900">How it works</a>
-            <a href="#pricing" className="transition hover:text-gray-900">Pricing</a>
+            <a href="#story" className="transition hover:text-gray-900">The 3 minutes</a>
+            <a href="#capabilities" className="transition hover:text-gray-900">Capabilities</a>
+            <a href="#warroom" className="transition hover:text-gray-900">War Room</a>
             <a href="#faq" className="transition hover:text-gray-900">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Link
-              to="/login"
-              className="rounded-full px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
-            >
-              Login
+            <Link to="/login" className="rounded-lg px-3.5 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50">
+              Sign in
             </Link>
             <button
               onClick={exploreDemo}
               disabled={demoLoading}
-              className="inline-flex items-center gap-1.5 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:opacity-60"
             >
-              {demoLoading ? <Loader2 size={14} className="animate-spin" /> : null}
-              Get started
+              {demoLoading && <Loader2 size={13} className="animate-spin" />}
+              Open live demo
             </button>
           </div>
         </div>
       </header>
 
-      {/* ------------------------------- hero ------------------------------- */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-indigo-50/70 via-white to-white">
-        <div className="relative mx-auto max-w-7xl px-6 pt-20 text-center md:pt-24">
-          <h1 className="font-display mx-auto max-w-4xl text-[42px] font-extrabold leading-[1.05] tracking-tight md:text-7xl">
-            Master Your Market
-            <br />
-            with <span className="text-indigo-600">AI</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-[15px] leading-7 text-gray-500 md:text-lg">
-            Competitor monitoring, AI change analysis, instant Slack alerts and weekly executive
-            briefs — all in one workspace.
+      {/* hero — split: copy + radar screen */}
+      <section className="mx-auto grid max-w-6xl items-center gap-14 px-6 pb-20 pt-16 lg:grid-cols-[1.1fr_0.9fr] lg:pt-24">
+        <div>
+          <p className="font-mono text-xs tracking-[0.25em] text-indigo-500">
+            {"//"} COMPETITIVE INTELLIGENCE, AUTOMATED
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <h1 className="font-display mt-5 text-[40px] font-bold leading-[1.06] tracking-tight md:text-[56px]">
+            Every competitor move.
+            <br />
+            On your radar.
+          </h1>
+          <p className="mt-5 max-w-md text-[15px] leading-7 text-gray-500">
+            Radar sweeps their pricing pages, changelogs and features every hour, reads every change
+            with AI, and tells your team the one thing that matters:{" "}
+            <span className="font-medium text-gray-800">what to do about it.</span>
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
             <button
               onClick={exploreDemo}
               disabled={demoLoading}
-              className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-200/80 transition hover:bg-indigo-700 hover:shadow-indigo-300/80 disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-60"
             >
-              {demoLoading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-              Start Monitoring Free
+              {demoLoading ? <Loader2 size={15} className="animate-spin" /> : null}
+              Put them on radar
+              <ArrowRight size={15} />
             </button>
-            <button
-              onClick={exploreDemo}
-              disabled={demoLoading}
-              className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-7 py-3.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+            <Link
+              to="/login"
+              className="rounded-lg border border-gray-200 px-6 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
             >
-              ▶ Watch Demo
-            </button>
+              Create account
+            </Link>
+          </div>
+          <div className="mt-8 flex items-center gap-6 font-mono text-[11px] text-gray-400">
+            <span>24/7 SWEEPS</span>
+            <span className="h-3 w-px bg-gray-200" />
+            <span>AI VERDICT &lt; 2s</span>
+            <span className="h-3 w-px bg-gray-200" />
+            <span>ZERO SETUP DEMO</span>
+          </div>
+        </div>
+        <RadarScreen />
+      </section>
+
+      {/* live intel ticker */}
+      <Ticker />
+
+      {/* the story: one change, minute by minute */}
+      <section id="story" className="mx-auto max-w-3xl px-6 py-24">
+        <p className="text-center font-mono text-xs tracking-[0.25em] text-indigo-500">CASE FILE</p>
+        <h2 className="font-display mt-3 text-center text-3xl font-bold tracking-tight md:text-[42px]">
+          From their edit to your Slack.
+          <br className="hidden md:block" /> Three minutes.
+        </h2>
+
+        <div className="relative mt-14 space-y-0 border-l-2 border-gray-100 pl-8 md:pl-10">
+          {/* 07:00 */}
+          <div className="relative pb-10">
+            <span className="absolute -left-[41px] top-0 flex h-5 w-5 items-center justify-center rounded-full border-2 border-gray-200 bg-white md:-left-[49px]" />
+            <p className="font-mono text-xs text-gray-400">07:00 · SWEEP #4,412</p>
+            <p className="mt-1 text-sm text-gray-600">
+              The hourly n8n sweep fetches Acme's pricing page. Fingerprint doesn't match yesterday's.
+            </p>
           </div>
 
-          {/* ------------------------- product mockup ------------------------- */}
-          <div className="relative mx-auto mt-16 max-w-5xl pb-24">
-            <div className="rounded-[20px] bg-gradient-to-b from-gray-200/80 to-gray-100/40 p-2 shadow-[0_40px_80px_-20px_rgba(79,70,229,0.25)]">
-              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white text-left">
-                {/* window bar */}
-                <div className="flex items-center justify-between border-b border-gray-100 bg-white px-4 py-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-md bg-indigo-600">
-                      <RadarIcon size={11} className="text-white" />
-                    </span>
-                    <span className="font-display text-xs font-bold">Radar</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-gray-200" />
-                    <span className="h-2 w-2 rounded-full bg-gray-200" />
-                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-[150px_1fr]">
-                  {/* sidebar */}
-                  <div className="hidden border-r border-gray-100 bg-gray-50/60 p-3 md:block">
-                    {["Dashboard", "Competitors", "War Room", "AI Brief", "Settings"].map((item, i) => (
-                      <div
-                        key={item}
-                        className={`mb-1 rounded-md px-2.5 py-1.5 text-[11px] font-medium ${
-                          i === 0 ? "bg-indigo-50 text-indigo-700" : "text-gray-400"
-                        }`}
-                      >
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                  {/* main */}
-                  <div className="p-4">
-                    {/* stat cards */}
-                    <div className="grid grid-cols-4 gap-2.5">
-                      {[
-                        ["Competitors", "4"],
-                        ["Tracked pages", "16"],
-                        ["Changes (7d)", "12"],
-                        ["High impact", "3"],
-                      ].map(([label, value]) => (
-                        <div key={label} className="rounded-lg border border-gray-100 bg-white p-2.5 shadow-sm">
-                          <div className="text-[9px] font-medium uppercase tracking-wide text-gray-400">
-                            {label}
-                          </div>
-                          <div className="font-display mt-0.5 text-lg font-bold">{value}</div>
-                        </div>
-                      ))}
-                    </div>
-                    {/* activity bars */}
-                    <div className="mt-3 rounded-lg border border-gray-100 p-3 shadow-sm">
-                      <div className="mb-2 flex items-center justify-between">
-                        <span className="text-[10px] font-semibold text-gray-500">Change activity</span>
-                        <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600">
-                          <TrendingUp size={10} /> +32% this week
-                        </span>
-                      </div>
-                      <div className="flex h-14 items-end gap-1">
-                        {[35, 55, 30, 70, 45, 85, 60, 40, 95, 65, 50, 75, 88, 58].map((h, i) => (
-                          <div
-                            key={i}
-                            className={`flex-1 rounded-t ${i === 8 ? "bg-indigo-500" : "bg-indigo-100"}`}
-                            style={{ height: `${h}%` }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    {/* change rows */}
-                    {[
-                      ["AC", "#6366f1", "Acme Analytics", "Pricing", "8/10", "Cut Pro plan to $69 + usage-based Scale add-on"],
-                      ["PH", "#0ea5e9", "PipelineHQ", "New feature", "7/10", "Shipped AI-assisted reporting module"],
-                    ].map(([initials, color, name, cat, impact, text]) => (
-                      <div key={name} className="mt-2 flex items-center gap-2.5 rounded-lg border border-gray-100 p-2.5 shadow-sm">
-                        <span
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[9px] font-bold text-white"
-                          style={{ backgroundColor: color }}
-                        >
-                          {initials}
-                        </span>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] font-semibold">{name}</span>
-                            <span className="rounded-full bg-violet-50 px-1.5 py-px text-[9px] font-medium text-violet-600">{cat}</span>
-                            <span className="rounded-full bg-red-50 px-1.5 py-px text-[9px] font-semibold text-red-600">{impact}</span>
-                          </div>
-                          <div className="truncate text-[10px] text-gray-400">{text}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+          {/* 07:02 diff */}
+          <div className="relative pb-10">
+            <span className="absolute -left-[41px] top-0 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 md:-left-[49px]">
+              <GitCompareArrows size={11} className="text-white" />
+            </span>
+            <p className="font-mono text-xs text-indigo-500">07:02 · CHANGE ISOLATED</p>
+            <div className="mt-2 overflow-hidden rounded-lg border border-gray-200 font-mono text-xs shadow-sm">
+              <div className="flex bg-red-50 px-4 py-1.5 text-red-700">
+                <span className="w-5 select-none opacity-50">−</span>Pro price: $79 per user / month
+              </div>
+              <div className="flex bg-emerald-50 px-4 py-1.5 text-emerald-800">
+                <span className="w-5 select-none opacity-50">+</span>Pro price: $69. New: Scale add-on — pay as you grow.
+              </div>
+            </div>
+          </div>
+
+          {/* 07:02 verdict */}
+          <div className="relative pb-10">
+            <span className="absolute -left-[41px] top-0 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 md:-left-[49px]">
+              <BrainCircuit size={11} className="text-white" />
+            </span>
+            <p className="font-mono text-xs text-indigo-500">07:02 · AI VERDICT (1.8s)</p>
+            <div className="mt-2 rounded-lg border border-gray-200 bg-gray-900 p-4 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
+                <span className="rounded bg-violet-500/15 px-2 py-0.5 text-violet-300">pricing_change</span>
+                <span className="rounded bg-red-500/15 px-2 py-0.5 text-red-300">impact 8/10</span>
+                <span className="text-gray-500">gpt-oss-120b · schema-validated</span>
+              </div>
+              <p className="mt-2.5 text-[13px] leading-6 text-gray-300">
+                "A deliberate move against mid-market deals. Refresh the battlecard and prep objection
+                handling for Q2 renewals."
+              </p>
+            </div>
+          </div>
+
+          {/* 07:03 slack */}
+          <div className="relative pb-4">
+            <span className="absolute -left-[41px] top-0 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 md:-left-[49px]">
+              <Bell size={11} className="text-white" />
+            </span>
+            <p className="font-mono text-xs text-emerald-600">07:03 · DELIVERED TO #PRICING-INTEL</p>
+            <div className="mt-2 flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600">
+                <RadarIcon size={15} className="text-white" />
+              </span>
+              <div className="text-[13px] leading-6">
+                <span className="font-semibold">Radar</span>{" "}
+                <span className="rounded bg-gray-100 px-1 font-mono text-[10px] text-gray-400">APP 07:03</span>
+                <p className="text-gray-600">
+                  🚨 <b>Acme Analytics</b> — pricing_change (impact 8/10). Pro cut to $69 + usage add-on.{" "}
+                  <span className="text-indigo-600">Recommended: refresh battlecard before Q2 renewals.</span>
+                </p>
               </div>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* --------------------------- stack strip --------------------------- */}
-      <section className="border-y border-gray-100 bg-gray-50/60 py-10">
-        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400">
-          Powered by a real automation stack
+        <p className="mt-12 text-center text-sm text-gray-500">
+          Your competitor spent weeks planning this move.{" "}
+          <span className="font-semibold text-gray-900">You knew in three minutes.</span>
         </p>
-        <div className="mx-auto mt-5 flex max-w-4xl flex-wrap items-center justify-center gap-x-12 gap-y-3 px-6">
-          {["n8n", "Groq AI", "FastAPI", "Supabase", "Slack", "React"].map((name) => (
-            <span key={name} className="font-display text-lg font-bold text-gray-300 transition hover:text-gray-400">
-              {name}
-            </span>
-          ))}
-        </div>
       </section>
 
-      {/* ---------------------------- features ---------------------------- */}
-      <section id="features" className="mx-auto max-w-7xl px-6 py-24">
-        <h2 className="font-display mx-auto max-w-2xl text-center text-3xl font-extrabold tracking-tight md:text-5xl">
-          Everything You Need to
-          <br />
-          Outpace Your Market
-        </h2>
-        <p className="mx-auto mt-4 max-w-xl text-center text-sm leading-6 text-gray-500">
-          From detection to analysis to action — Radar runs the full competitive-intelligence loop
-          so your team only sees what matters.
-        </p>
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURE_CARDS.map(({ icon: Icon, tint, iconTint, title, text }) => (
-            <div key={title} className={`rounded-2xl border p-6 transition hover:-translate-y-1 hover:shadow-lg ${tint}`}>
-              <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${iconTint}`}>
-                <Icon size={20} />
-              </span>
-              <h3 className="font-display mt-5 text-[15px] font-bold">{title}</h3>
-              <p className="mt-2 text-[13px] leading-6 text-gray-600">{text}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* --------------------------- how it works --------------------------- */}
-      <section id="how" className="border-t border-gray-100 bg-gray-50/60 py-24">
-        <div className="mx-auto max-w-4xl px-6">
-          <h2 className="font-display text-center text-3xl font-extrabold tracking-tight md:text-5xl">
-            Your Path to Winning
+      {/* capabilities — dossier bento */}
+      <section id="capabilities" className="border-t border-gray-100 bg-gray-50/60 py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <p className="font-mono text-xs tracking-[0.25em] text-indigo-500">CAPABILITIES</p>
+          <h2 className="font-display mt-3 max-w-xl text-3xl font-bold tracking-tight md:text-[42px]">
+            A full intel operation, running itself
           </h2>
-          <div className="mt-14 space-y-8">
-            {STEPS.map(({ step, title, text }) => (
-              <div key={step} className="flex items-start gap-5">
-                <span className="font-display flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white shadow-md shadow-indigo-200">
-                  {step}
-                </span>
-                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm flex-1">
-                  <h3 className="font-display text-[15px] font-bold">{title}</h3>
-                  <p className="mt-1.5 text-[13px] leading-6 text-gray-500">{text}</p>
+          <div className="mt-12 grid gap-5 md:grid-cols-3">
+            {CAPABILITIES.map(({ code, icon: Icon, title, text, wide }) => (
+              <div
+                key={code}
+                className={`group rounded-2xl border border-gray-200 bg-white p-7 shadow-sm transition hover:border-indigo-200 hover:shadow-md ${
+                  wide ? "md:col-span-2" : ""
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-900 text-white transition group-hover:bg-indigo-600">
+                    <Icon size={17} />
+                  </span>
+                  <span className="font-mono text-[10px] tracking-widest text-gray-300">{code}</span>
                 </div>
+                <h3 className="font-display mt-5 text-[16px] font-semibold">{title}</h3>
+                <p className="mt-2 text-[13px] leading-6 text-gray-500">{text}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ---------------------- decisions (checklist + code) ---------------------- */}
-      <section className="mx-auto max-w-7xl px-6 py-24">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
+      {/* war room — dark feature spotlight */}
+      <section id="warroom" className="bg-[#0a0f1e] py-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 lg:grid-cols-2">
           <div>
-            <h2 className="font-display text-3xl font-extrabold leading-tight tracking-tight md:text-5xl">
-              Don't Just Monitor,
-              <br />
-              <span className="bg-indigo-100 px-2 italic">Actually Act.</span>
+            <p className="font-mono text-xs tracking-[0.25em] text-red-400">CLASSIFIED FEATURE</p>
+            <h2 className="font-display mt-3 text-3xl font-bold tracking-tight text-white md:text-[42px]">
+              The War Room
             </h2>
-            <ul className="mt-8 space-y-4">
-              {CHECKLIST.map((item) => (
-                <li key={item} className="flex items-start gap-3 text-sm leading-6 text-gray-600">
-                  <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-indigo-500" />
-                  {item}
+            <p className="mt-4 max-w-md text-[15px] leading-7 text-gray-400">
+              Two AI strategists, live. One argues as your competitor — armed with their real tracked
+              moves. One defends your position. A neutral referee scores the fight and hands you three
+              takeaways. It's the sparring session before the real match.
+            </p>
+            <button
+              onClick={exploreDemo}
+              disabled={demoLoading}
+              className="mt-7 inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-100 disabled:opacity-60"
+            >
+              {demoLoading ? <Loader2 size={15} className="animate-spin" /> : <Swords size={15} />}
+              Watch a live debate
+            </button>
+          </div>
+          <div className="space-y-3">
+            <div className="max-w-[90%] rounded-xl border border-red-500/20 bg-red-500/5 p-4">
+              <p className="flex items-center gap-1.5 font-mono text-[10px] text-red-300">
+                <Swords size={11} /> ACME — CHIEF STRATEGIST
+              </p>
+              <p className="mt-1.5 text-[13px] leading-6 text-gray-300">
+                "We just cut Pro to $69. Your mid-market customers are already doing the math — every
+                renewal now starts with our pricing page open in a second tab."
+              </p>
+            </div>
+            <div className="ml-auto max-w-[90%] rounded-xl border border-indigo-500/25 bg-indigo-500/10 p-4">
+              <p className="flex items-center justify-end gap-1.5 font-mono text-[10px] text-indigo-300">
+                OUR VP OF STRATEGY <Shield size={11} />
+              </p>
+              <p className="mt-1.5 text-right text-[13px] leading-6 text-gray-300">
+                "A 13% cut isn't strategy — it's margin panic. You've just trained your market to wait
+                for discounts. Renewals are won on twelve months of reliability, not a sticker."
+              </p>
+            </div>
+            <div className="mx-auto max-w-[95%] rounded-xl border border-amber-500/25 bg-amber-500/5 p-4">
+              <p className="font-mono text-[10px] text-amber-300">⚖ REFEREE — VERDICT</p>
+              <p className="mt-1.5 text-[13px] leading-6 text-gray-400">
+                "Defender wins the exchange. Takeaway #1: prepare a total-cost-of-ownership battlecard
+                before renewal season…"
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* pricing — one split panel, not a card grid */}
+      <section className="mx-auto max-w-4xl px-6 py-24">
+        <p className="text-center font-mono text-xs tracking-[0.25em] text-indigo-500">ACCESS</p>
+        <h2 className="font-display mt-3 text-center text-3xl font-bold tracking-tight md:text-[42px]">
+          Start free. Scale when you're winning.
+        </h2>
+        <div className="mt-12 overflow-hidden rounded-2xl border border-gray-200 shadow-sm md:grid md:grid-cols-2">
+          <div className="border-b border-gray-200 bg-white p-8 md:border-b-0 md:border-r">
+            <p className="font-mono text-[11px] tracking-widest text-gray-400">RECON</p>
+            <div className="mt-2 flex items-baseline gap-1">
+              <span className="font-display text-4xl font-bold">$0</span>
+              <span className="text-sm text-gray-400">/mo</span>
+            </div>
+            <ul className="mt-6 space-y-2.5 text-sm text-gray-600">
+              {["3 competitors on radar", "Hourly sweeps + AI verdicts", "Diff forensics", "In-app alerts"].map((f) => (
+                <li key={f} className="flex items-center gap-2.5">
+                  <Check size={14} className="text-gray-400" /> {f}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-gray-900 p-8">
+            <p className="font-mono text-[11px] tracking-widest text-indigo-300">FULL OPERATION</p>
+            <div className="mt-2 flex items-baseline gap-1">
+              <span className="font-display text-4xl font-bold text-white">$49</span>
+              <span className="text-sm text-gray-500">/mo</span>
+            </div>
+            <ul className="mt-6 space-y-2.5 text-sm text-gray-300">
+              {["Unlimited competitors", "Slack alerts + channel routing", "AI weekly briefings", "War Room debates", "Priority AI analysis"].map((f) => (
+                <li key={f} className="flex items-center gap-2.5">
+                  <Check size={14} className="text-indigo-400" /> {f}
                 </li>
               ))}
             </ul>
             <button
               onClick={exploreDemo}
               disabled={demoLoading}
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-60"
+              className="mt-7 w-full rounded-lg bg-indigo-500 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-400 disabled:opacity-60"
             >
-              Experience Radar AI
-              <ArrowRight size={15} />
+              Try everything in the demo
             </button>
           </div>
-          <div className="rounded-2xl border border-gray-800 bg-gray-900 p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-gray-700/60 pb-3">
-              <span className="font-mono text-xs text-gray-400">change_analysis.json</span>
-              <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] text-emerald-400">
-                gpt-oss-120b · validated
-              </span>
-            </div>
-            <pre className="mt-4 overflow-x-auto font-mono text-[12.5px] leading-7 text-gray-300">
-{`{
-  `}<span className="text-sky-300">"summary"</span>{`: "Acme cut the Pro plan
-    from $79 to $69 and added a
-    usage-based Scale add-on.",
-  `}<span className="text-sky-300">"category"</span>{`: `}<span className="text-violet-300">"pricing_change"</span>{`,
-  `}<span className="text-sky-300">"impact_score"</span>{`: `}<span className="text-red-400">8</span>{`,
-  `}<span className="text-sky-300">"recommended_action"</span>{`: "Refresh
-    the battlecard and prep objection
-    handling for Q2 renewals."
-}`}
-            </pre>
-          </div>
         </div>
       </section>
 
-      {/* ----------------------------- pricing ----------------------------- */}
-      <section id="pricing" className="border-t border-gray-100 bg-gray-50/60 py-24">
-        <div className="mx-auto max-w-4xl px-6">
-          <h2 className="font-display text-center text-3xl font-extrabold tracking-tight md:text-5xl">
-            Invest in Your Edge
-          </h2>
-          <p className="mt-3 text-center text-sm text-gray-500">Simple plans for every team.</p>
-          <div className="mt-12 grid gap-6 md:grid-cols-2">
-            {PRICING.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative rounded-2xl border bg-white p-8 shadow-sm ${
-                  plan.popular ? "border-indigo-300 ring-2 ring-indigo-100" : "border-gray-200"
-                }`}
-              >
-                {plan.popular && (
-                  <span className="absolute -top-3 left-8 rounded-full bg-indigo-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
-                    Most popular
-                  </span>
-                )}
-                <h3 className="font-display text-sm font-bold text-gray-500">{plan.name}</h3>
-                <div className="mt-3 flex items-baseline gap-1">
-                  <span className="font-display text-5xl font-extrabold tracking-tight">{plan.price}</span>
-                  <span className="text-sm text-gray-400">/mo</span>
-                </div>
-                <p className="mt-1 text-xs text-gray-400">{plan.tag}</p>
-                <ul className="mt-6 space-y-3">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2.5 text-sm text-gray-600">
-                      <Check size={15} className="shrink-0 text-indigo-500" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={exploreDemo}
-                  disabled={demoLoading}
-                  className={`mt-8 w-full rounded-full py-3 text-sm font-semibold transition disabled:opacity-60 ${
-                    plan.popular
-                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-200 hover:bg-indigo-700"
-                      : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  {plan.cta}
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* --------------------------- testimonials --------------------------- */}
-      <section className="mx-auto max-w-7xl px-6 py-24">
-        <h2 className="font-display text-center text-3xl font-extrabold tracking-tight md:text-5xl">
-          Results Speak Louder
-        </h2>
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
-          {TESTIMONIALS.map(({ quote, name, role, stars }) => (
-            <div key={name} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-7 shadow-sm">
-              <div className="flex gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    size={15}
-                    className={i < stars ? "fill-amber-400 text-amber-400" : "fill-gray-200 text-gray-200"}
-                  />
-                ))}
-              </div>
-              <p className="mt-4 flex-1 text-sm italic leading-7 text-gray-600">"{quote}"</p>
-              <div className="mt-5 flex items-center gap-3 border-t border-gray-50 pt-4">
-                <span className="font-display flex h-9 w-9 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
-                  {name.slice(0, 1)}
-                </span>
-                <div>
-                  <div className="text-[13px] font-semibold">{name}</div>
-                  <div className="text-[11px] text-gray-400">{role}</div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ------------------------------- FAQ ------------------------------- */}
+      {/* FAQ — side heading layout */}
       <section id="faq" className="border-t border-gray-100 bg-gray-50/60 py-24">
-        <div className="mx-auto max-w-3xl px-6">
-          <h2 className="font-display text-center text-3xl font-extrabold tracking-tight md:text-5xl">FAQs</h2>
-          <div className="mt-12 space-y-3">
+        <div className="mx-auto grid max-w-6xl gap-12 px-6 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="font-mono text-xs tracking-[0.25em] text-indigo-500">DEBRIEF</p>
+            <h2 className="font-display mt-3 text-3xl font-bold tracking-tight md:text-[42px]">
+              Questions, answered
+            </h2>
+            <p className="mt-4 max-w-xs text-sm leading-6 text-gray-500">
+              Everything teams usually ask before putting their market on radar.
+            </p>
+          </div>
+          <div className="space-y-3">
             {FAQS.map(({ q, a }) => (
-              <details
-                key={q}
-                className="group rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm open:pb-5"
-              >
+              <details key={q} className="group rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm">
                 <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-gray-800 [&::-webkit-details-marker]:hidden">
                   {q}
-                  <span className="ml-4 text-gray-300 transition group-open:rotate-45">＋</span>
+                  <span className="ml-4 font-mono text-gray-300 transition group-open:rotate-45">+</span>
                 </summary>
                 <p className="mt-3 text-[13px] leading-6 text-gray-500">{a}</p>
               </details>
@@ -544,74 +508,57 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ----------------------------- final CTA ----------------------------- */}
-      <section className="mx-auto max-w-7xl px-6 py-24">
-        <div className="rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 px-8 py-16 text-center shadow-2xl shadow-indigo-200">
-          <h2 className="font-display mx-auto max-w-2xl text-3xl font-extrabold tracking-tight text-white md:text-5xl">
-            Start Your Competitive Edge Today
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-indigo-100">
-            See the full product in 30 seconds — pre-loaded with competitors, AI analyses, diffs and a
-            live War Room debate. No credit card, no email.
+      {/* final CTA — terminal style */}
+      <section className="mx-auto max-w-6xl px-6 py-24">
+        <div className="relative overflow-hidden rounded-2xl bg-[#0a0f1e] px-8 py-16 text-center">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-40"
+            style={{
+              background:
+                "radial-gradient(50% 60% at 50% 100%, rgba(99,102,241,0.35) 0%, transparent 70%)",
+            }}
+          />
+          <p className="relative font-mono text-xs tracking-[0.3em] text-indigo-300">
+            TARGETS ACQUIRED: 0 — AWAITING ORDERS
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <button
-              onClick={exploreDemo}
-              disabled={demoLoading}
-              className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-indigo-700 shadow-lg transition hover:bg-indigo-50 disabled:opacity-60"
-            >
-              {demoLoading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-              Start Monitoring Free
-            </button>
-            <Link
-              to="/login"
-              className="rounded-full border border-white/30 px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10"
-            >
-              Create account
-            </Link>
-          </div>
+          <h2 className="font-display relative mx-auto mt-4 max-w-2xl text-3xl font-bold tracking-tight text-white md:text-5xl">
+            Your competitors are shipping right now.
+          </h2>
+          <p className="relative mx-auto mt-4 max-w-md text-sm leading-6 text-gray-400">
+            The demo takes one click and 30 seconds. The insight lasts all quarter.
+          </p>
+          <button
+            onClick={exploreDemo}
+            disabled={demoLoading}
+            className="relative mt-8 inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-900/50 transition hover:bg-indigo-400 disabled:opacity-60"
+          >
+            {demoLoading ? <Loader2 size={16} className="animate-spin" /> : <RadarIcon size={16} />}
+            Begin surveillance
+            <ArrowRight size={15} />
+          </button>
         </div>
       </section>
 
-      {/* ------------------------------ footer ------------------------------ */}
-      <footer className="border-t border-gray-100 bg-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
-          <div className="md:col-span-2">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
-                <RadarIcon size={17} className="text-white" />
-              </span>
-              <span className="font-display text-[16px] font-bold">Radar</span>
+      {/* footer */}
+      <footer className="border-t border-gray-100">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-6 py-10">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600">
+              <RadarIcon size={14} className="text-white" />
+            </span>
+            <div>
+              <div className="font-display text-sm font-semibold">Radar</div>
+              <div className="text-[11px] text-gray-400">Competitive intelligence, automated</div>
             </div>
-            <p className="mt-4 max-w-xs text-[13px] leading-6 text-gray-400">
-              AI-powered competitor intelligence — automated monitoring, impact analysis and alerts
-              for teams that compete to win.
-            </p>
           </div>
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Product</h4>
-            <ul className="mt-4 space-y-2.5 text-[13px] text-gray-500">
-              <li><a href="#features" className="hover:text-gray-900">Features</a></li>
-              <li><a href="#how" className="hover:text-gray-900">How it works</a></li>
-              <li><a href="#pricing" className="hover:text-gray-900">Pricing</a></li>
-              <li><button onClick={exploreDemo} className="hover:text-gray-900">Live demo</button></li>
-            </ul>
+          <div className="flex items-center gap-6 text-[13px] text-gray-500">
+            <a href="#capabilities" className="hover:text-gray-900">Capabilities</a>
+            <a href="#warroom" className="hover:text-gray-900">War Room</a>
+            <Link to="/login" className="hover:text-gray-900">Sign in</Link>
           </div>
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400">Built with</h4>
-            <ul className="mt-4 space-y-2.5 text-[13px] text-gray-500">
-              <li className="flex items-center gap-2"><Globe size={13} /> n8n automation</li>
-              <li className="flex items-center gap-2"><BrainCircuit size={13} /> Groq gpt-oss-120b</li>
-              <li className="flex items-center gap-2"><FileText size={13} /> FastAPI + React</li>
-              <li className="flex items-center gap-2"><Bell size={13} /> Slack integration</li>
-            </ul>
-          </div>
-        </div>
-        <div className="border-t border-gray-100">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-6 text-xs text-gray-400">
-            <span>© 2026 Radar. All rights reserved.</span>
-            <span>Portfolio project · AI Automation Engineering</span>
-          </div>
+          <p className="font-mono text-[11px] text-gray-300">
+            n8n · groq gpt-oss-120b · fastapi · supabase
+          </p>
         </div>
       </footer>
     </div>
