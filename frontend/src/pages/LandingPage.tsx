@@ -101,6 +101,143 @@ const FAQS = [
 
 /* ------------------------------ pieces ------------------------------ */
 
+function Robot({
+  body,
+  visor,
+  accent,
+  size = 150,
+  delay = "0s",
+  flip = false,
+}: {
+  body: string;
+  visor: string;
+  accent: string;
+  size?: number;
+  delay?: string;
+  flip?: boolean;
+}) {
+  return (
+    <svg
+      viewBox="0 0 120 170"
+      width={size}
+      height={(size * 170) / 120}
+      className="animate-bot-float drop-shadow-xl"
+      style={{ animationDelay: delay, transform: flip ? "scaleX(-1)" : undefined }}
+    >
+      {/* antenna */}
+      <line x1="60" y1="20" x2="60" y2="8" stroke={body} strokeWidth="4" strokeLinecap="round" />
+      <circle cx="60" cy="6" r="5" fill={accent} />
+      {/* head */}
+      <rect x="26" y="18" width="68" height="48" rx="16" fill={body} />
+      {/* visor */}
+      <rect x="34" y="30" width="52" height="24" rx="12" fill={visor} />
+      <circle cx="50" cy="42" r="5" fill={accent} />
+      <circle cx="70" cy="42" r="5" fill={accent} />
+      {/* ears */}
+      <rect x="18" y="34" width="8" height="16" rx="4" fill={body} />
+      <rect x="94" y="34" width="8" height="16" rx="4" fill={body} />
+      {/* body */}
+      <rect x="30" y="72" width="60" height="56" rx="16" fill={body} />
+      <circle cx="60" cy="96" r="11" fill={visor} />
+      <circle cx="60" cy="96" r="5" fill={accent} />
+      {/* arms */}
+      <rect x="12" y="76" width="14" height="38" rx="7" fill={body} />
+      <rect x="94" y="76" width="14" height="38" rx="7" fill={body} />
+      {/* legs */}
+      <rect x="38" y="130" width="14" height="26" rx="7" fill={body} />
+      <rect x="68" y="130" width="14" height="26" rx="7" fill={body} />
+      {/* feet */}
+      <ellipse cx="45" cy="160" rx="12" ry="6" fill={visor} />
+      <ellipse cx="75" cy="160" rx="12" ry="6" fill={visor} />
+    </svg>
+  );
+}
+
+function DashMockup() {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-[0_40px_90px_-25px_rgba(10,15,30,0.45)]">
+      {/* window bar */}
+      <div className="flex items-center justify-between border-b border-gray-100 bg-white px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-indigo-600">
+            <RadarIcon size={11} className="text-white" />
+          </span>
+          <span className="font-display text-xs font-semibold">Radar</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-gray-200" />
+          <span className="h-2 w-2 rounded-full bg-gray-200" />
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+        </div>
+      </div>
+      <div className="grid md:grid-cols-[140px_1fr]">
+        {/* sidebar */}
+        <div className="hidden border-r border-gray-100 bg-gray-50/60 p-3 md:block">
+          {["Dashboard", "Competitors", "War Room", "AI Brief", "Settings"].map((item, i) => (
+            <div
+              key={item}
+              className={`mb-1 rounded-md px-2.5 py-1.5 text-[11px] font-medium ${
+                i === 0 ? "bg-indigo-50 text-indigo-700" : "text-gray-400"
+              }`}
+            >
+              {item}
+            </div>
+          ))}
+        </div>
+        {/* main */}
+        <div className="p-4">
+          <div className="grid grid-cols-4 gap-2.5">
+            {[
+              ["Competitors", "4"],
+              ["Tracked pages", "16"],
+              ["Changes (7d)", "12"],
+              ["High impact", "3"],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-lg border border-gray-100 bg-white p-2.5 shadow-sm">
+                <div className="text-[9px] font-medium uppercase tracking-wide text-gray-400">{label}</div>
+                <div className="font-display mt-0.5 text-lg font-bold">{value}</div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 rounded-lg border border-gray-100 p-3 shadow-sm">
+            <div className="mb-2 text-[10px] font-semibold text-gray-500">Change activity</div>
+            <div className="flex h-12 items-end gap-1">
+              {[35, 55, 30, 70, 45, 85, 60, 40, 95, 65, 50, 75, 88, 58].map((h, i) => (
+                <div
+                  key={i}
+                  className={`flex-1 rounded-t ${i === 8 ? "bg-indigo-500" : "bg-indigo-100"}`}
+                  style={{ height: `${h}%` }}
+                />
+              ))}
+            </div>
+          </div>
+          {[
+            ["AC", "#6366f1", "Acme Analytics", "Pricing", "8/10", "Cut Pro plan to $69 + usage-based Scale add-on"],
+            ["PH", "#0ea5e9", "PipelineHQ", "New feature", "7/10", "Shipped AI-assisted reporting module"],
+          ].map(([initials, color, name, cat, impact, text]) => (
+            <div key={name} className="mt-2 flex items-center gap-2.5 rounded-lg border border-gray-100 p-2.5 shadow-sm">
+              <span
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[9px] font-bold text-white"
+                style={{ backgroundColor: color }}
+              >
+                {initials}
+              </span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold">{name}</span>
+                  <span className="rounded-full bg-violet-50 px-1.5 py-px text-[9px] font-medium text-violet-600">{cat}</span>
+                  <span className="rounded-full bg-red-50 px-1.5 py-px text-[9px] font-semibold text-red-600">{impact}</span>
+                </div>
+                <div className="truncate text-[10px] text-gray-400">{text}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RadarScreen() {
   return (
     <div className="relative mx-auto aspect-square w-full max-w-[420px]">
@@ -228,27 +365,35 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* hero — split: copy + radar screen */}
-      <section className="mx-auto grid max-w-6xl items-center gap-14 px-6 pb-20 pt-16 lg:grid-cols-[1.1fr_0.9fr] lg:pt-24">
-        <div>
-          <p className="font-mono text-xs tracking-[0.25em] text-indigo-500">
+      {/* hero — bold color field, centered copy, mockup flanked by robots */}
+      <section className="relative overflow-hidden bg-indigo-400">
+        {/* subtle texture */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-30"
+          style={{
+            background:
+              "radial-gradient(70% 60% at 50% 0%, rgba(255,255,255,0.35) 0%, transparent 60%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-6xl px-6 pt-16 text-center md:pt-20">
+          <p className="font-mono text-[11px] tracking-[0.3em] text-indigo-950/70">
             {"//"} COMPETITIVE INTELLIGENCE, AUTOMATED
           </p>
-          <h1 className="font-display mt-5 text-[40px] font-bold leading-[1.06] tracking-tight md:text-[56px]">
+          <h1 className="font-display mx-auto mt-4 max-w-3xl text-[38px] font-bold leading-[1.05] tracking-tight text-[#0b1020] md:text-[60px]">
             Every competitor move.
             <br />
             On your radar.
           </h1>
-          <p className="mt-5 max-w-md text-[15px] leading-7 text-gray-500">
-            Radar sweeps their pricing pages, changelogs and features every hour, reads every change
-            with AI, and tells your team the one thing that matters:{" "}
-            <span className="font-medium text-gray-800">what to do about it.</span>
+          <p className="mx-auto mt-5 max-w-xl text-[15px] leading-7 text-indigo-950/70">
+            Radar sweeps their pricing, changelogs and features every hour, reads every change with
+            AI, and tells your team the one thing that matters:{" "}
+            <span className="font-semibold text-[#0b1020]">what to do about it.</span>
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <button
               onClick={exploreDemo}
               disabled={demoLoading}
-              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#0b1020] px-7 py-3.5 text-sm font-semibold text-white shadow-xl shadow-indigo-900/20 transition hover:bg-gray-800 disabled:opacity-60"
             >
               {demoLoading ? <Loader2 size={15} className="animate-spin" /> : null}
               Put them on radar
@@ -256,20 +401,38 @@ export default function LandingPage() {
             </button>
             <Link
               to="/login"
-              className="rounded-lg border border-gray-200 px-6 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+              className="rounded-lg border border-[#0b1020]/20 bg-white/60 px-7 py-3.5 text-sm font-semibold text-[#0b1020] backdrop-blur-sm transition hover:bg-white"
             >
               Create account
             </Link>
           </div>
-          <div className="mt-8 flex items-center gap-6 font-mono text-[11px] text-gray-400">
+          <div className="mt-6 flex items-center justify-center gap-6 font-mono text-[11px] text-indigo-950/60">
             <span>24/7 SWEEPS</span>
-            <span className="h-3 w-px bg-gray-200" />
+            <span className="h-3 w-px bg-indigo-950/20" />
             <span>AI VERDICT &lt; 2s</span>
-            <span className="h-3 w-px bg-gray-200" />
+            <span className="h-3 w-px bg-indigo-950/20" />
             <span>ZERO SETUP DEMO</span>
           </div>
+
+          {/* mockup + robots on the color field */}
+          <div className="relative mx-auto mt-12 max-w-3xl pb-16">
+            {/* robots — left */}
+            <div className="absolute -left-44 bottom-10 hidden xl:block">
+              <Robot body="#0b1020" visor="#1e2749" accent="#67e8f9" size={165} delay="0s" />
+            </div>
+            <div className="absolute -left-72 bottom-6 hidden 2xl:block">
+              <Robot body="#ffffff" visor="#c7d2fe" accent="#4f46e5" size={120} delay="1.2s" />
+            </div>
+            {/* robots — right */}
+            <div className="absolute -right-44 bottom-10 hidden xl:block">
+              <Robot body="#ffffff" visor="#dbe0ff" accent="#4f46e5" size={165} delay="0.6s" flip />
+            </div>
+            <div className="absolute -right-72 bottom-6 hidden 2xl:block">
+              <Robot body="#0b1020" visor="#1e2749" accent="#f472b6" size={120} delay="1.8s" flip />
+            </div>
+            <DashMockup />
+          </div>
         </div>
-        <RadarScreen />
       </section>
 
       {/* live intel ticker */}
@@ -508,9 +671,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* final CTA — terminal style */}
+      {/* final CTA — terminal style with live radar */}
       <section className="mx-auto max-w-6xl px-6 py-24">
-        <div className="relative overflow-hidden rounded-2xl bg-[#0a0f1e] px-8 py-16 text-center">
+        <div className="relative overflow-hidden rounded-2xl bg-[#0a0f1e] px-8 py-14">
           <div
             className="pointer-events-none absolute inset-0 opacity-40"
             style={{
@@ -518,24 +681,31 @@ export default function LandingPage() {
                 "radial-gradient(50% 60% at 50% 100%, rgba(99,102,241,0.35) 0%, transparent 70%)",
             }}
           />
-          <p className="relative font-mono text-xs tracking-[0.3em] text-indigo-300">
-            TARGETS ACQUIRED: 0 — AWAITING ORDERS
-          </p>
-          <h2 className="font-display relative mx-auto mt-4 max-w-2xl text-3xl font-bold tracking-tight text-white md:text-5xl">
-            Your competitors are shipping right now.
-          </h2>
-          <p className="relative mx-auto mt-4 max-w-md text-sm leading-6 text-gray-400">
-            The demo takes one click and 30 seconds. The insight lasts all quarter.
-          </p>
-          <button
-            onClick={exploreDemo}
-            disabled={demoLoading}
-            className="relative mt-8 inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-900/50 transition hover:bg-indigo-400 disabled:opacity-60"
-          >
-            {demoLoading ? <Loader2 size={16} className="animate-spin" /> : <RadarIcon size={16} />}
-            Begin surveillance
-            <ArrowRight size={15} />
-          </button>
+          <div className="relative grid items-center gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="text-center lg:text-left">
+              <p className="font-mono text-xs tracking-[0.3em] text-indigo-300">
+                TARGETS ACQUIRED: 0 — AWAITING ORDERS
+              </p>
+              <h2 className="font-display mx-auto mt-4 max-w-2xl text-3xl font-bold tracking-tight text-white md:text-5xl">
+                Your competitors are shipping right now.
+              </h2>
+              <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-gray-400 lg:mx-0">
+                The demo takes one click and 30 seconds. The insight lasts all quarter.
+              </p>
+              <button
+                onClick={exploreDemo}
+                disabled={demoLoading}
+                className="mt-8 inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-7 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-900/50 transition hover:bg-indigo-400 disabled:opacity-60"
+              >
+                {demoLoading ? <Loader2 size={16} className="animate-spin" /> : <RadarIcon size={16} />}
+                Begin surveillance
+                <ArrowRight size={15} />
+              </button>
+            </div>
+            <div className="hidden lg:block">
+              <RadarScreen />
+            </div>
+          </div>
         </div>
       </section>
 

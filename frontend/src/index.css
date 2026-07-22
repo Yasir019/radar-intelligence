@@ -22,6 +22,12 @@
 .animate-ticker { animation: ticker-scroll 30s linear infinite; }
 .animate-ticker:hover { animation-play-state: paused; }
 
+@keyframes bot-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-bot-float { animation: bot-float 4s ease-in-out infinite; }
+
 html {
   -webkit-font-smoothing: antialiased;
 }
