@@ -43,11 +43,11 @@ export function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative rounded-lg p-2 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+        className="relative rounded-xl p-2 text-[#817d8e] hover:bg-white hover:text-[#171527]"
       >
         <Bell size={18} />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-600 px-1 text-[10px] font-semibold text-white">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#7457ea] px-1 text-[10px] font-semibold text-white">
             {unread}
           </span>
         )}
@@ -60,7 +60,7 @@ export function NotificationBell() {
             {unread > 0 && (
               <button
                 onClick={markAllRead}
-                className="text-xs font-medium text-indigo-600 hover:text-indigo-700"
+                className="text-xs font-medium text-[#7457ea] hover:text-[#6043d6]"
               >
                 Mark all read
               </button>
@@ -80,7 +80,7 @@ export function NotificationBell() {
                 }`}
               >
                 <div className="flex items-start gap-2">
-                  {!n.is_read && <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" />}
+                  {!n.is_read && <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#7457ea]" />}
                   <div className="min-w-0">
                     <div className="text-[13px] font-medium text-gray-900 truncate">{n.title}</div>
                     <div className="mt-0.5 line-clamp-2 text-xs text-gray-500">{n.body}</div>

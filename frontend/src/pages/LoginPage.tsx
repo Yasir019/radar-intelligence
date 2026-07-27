@@ -1,13 +1,16 @@
 import { Loader2, Radar, Sparkles } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { inputClass, primaryBtn } from "../components/Modal";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const { login, register } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [searchParams] = useSearchParams();
+  const [mode, setMode] = useState<"login" | "register">(
+    searchParams.get("mode") === "register" ? "register" : "login",
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -42,10 +45,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div className="soft-grid flex min-h-screen items-center justify-center bg-[#f3f1f8] px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 shadow-sm">
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#7457ea] shadow-[0_10px_24px_rgba(116,87,234,0.24)]">
             <Radar size={24} className="text-white" />
           </span>
           <h1 className="mt-4 text-xl font-semibold text-gray-900">Radar</h1>
@@ -101,7 +104,7 @@ export default function LoginPage() {
           <button
             onClick={tryDemo}
             disabled={busy}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#d9d0f4] bg-[#f3efff] px-3.5 py-2.5 text-sm font-semibold text-[#7457ea] transition-colors hover:bg-[#ebe5ff] disabled:opacity-50"
           >
             <Sparkles size={15} />
             Explore the live demo

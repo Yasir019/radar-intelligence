@@ -16,8 +16,8 @@ function formatDate(iso: string): string {
 export function ChangeTimeline({ changes, title = "Recent changes" }: { changes: ChangeEvent[]; title?: string }) {
   return (
     <div className="card">
-      <div className="border-b border-gray-100 px-5 py-4">
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+      <div className="border-b border-[#edf2f8] px-5 py-4">
+        <h3 className="text-sm font-bold text-[#24324a]">{title}</h3>
       </div>
       {changes.length === 0 && (
         <div className="px-5 py-10 text-center text-sm text-gray-400">
@@ -29,7 +29,7 @@ export function ChangeTimeline({ changes, title = "Recent changes" }: { changes:
           <li key={c.id}>
             <Link
               to={`/changes/${c.id}`}
-              className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-gray-50"
+              className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-[#f6faff]"
             >
               <span
                 className="h-9 w-9 shrink-0 rounded-lg flex items-center justify-center text-xs font-bold text-white"

@@ -2,55 +2,98 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-/* Landing page: radar + intel animations */
 @keyframes radar-sweep {
   to { transform: rotate(360deg); }
 }
+
 @keyframes blip-ping {
   0%, 100% { opacity: 0.5; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.4); }
 }
-@keyframes ticker-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
+
 .animate-radar-sweep { animation: radar-sweep 4s linear infinite; }
 .animate-blip { animation: blip-ping 2s ease-in-out infinite; }
-.animate-ticker { animation: ticker-scroll 30s linear infinite; }
-.animate-ticker:hover { animation-play-state: paused; }
-
-@keyframes bot-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-.animate-bot-float { animation: bot-float 4s ease-in-out infinite; }
 
 html {
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  @apply bg-gray-50 text-gray-900;
+  @apply m-0 bg-[#f3f1f8] text-[#171527];
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-/* Premium card primitive used across the app */
 .card {
-  @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+  @apply rounded-2xl border border-white/80 bg-white shadow-[0_8px_30px_rgba(55,38,112,0.06)];
 }
 
 .card-hover {
-  @apply transition-shadow duration-150 hover:shadow-md;
+  @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_35px_rgba(55,38,112,0.12)];
+}
+
+.radar-main h1 {
+  @apply text-[22px] font-bold tracking-[-0.025em] text-[#171527];
+}
+
+.radar-main h3,
+.radar-main h4 {
+  letter-spacing: -0.012em;
+}
+
+.radar-main select,
+.radar-main input,
+.radar-main textarea {
+  border-color: #ded9eb;
+}
+
+.radar-main select:focus,
+.radar-main input:focus,
+.radar-main textarea:focus {
+  border-color: #7457ea;
+  box-shadow: 0 0 0 3px rgba(116, 87, 234, 0.12);
+}
+
+.soft-grid {
+  background-image:
+    linear-gradient(rgba(116, 87, 234, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(116, 87, 234, 0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.product-stage-grid {
+  background-color: #f3f1f8;
+  background-image:
+    linear-gradient(rgba(116, 87, 234, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(116, 87, 234, 0.055) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+
+.landing-flow {
+  background:
+    radial-gradient(circle at 10% 18%, rgba(116, 87, 234, 0.055), transparent 25%),
+    radial-gradient(circle at 90% 62%, rgba(89, 63, 184, 0.05), transparent 27%),
+    #f5f3fa;
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+.float-soft {
+  animation: float-soft 5s ease-in-out infinite;
 }
 
 /* Markdown (brief) styling */
-.prose-brief h1 { @apply text-2xl font-semibold mt-2 mb-4 text-gray-900; }
-.prose-brief h2 { @apply text-lg font-semibold mt-6 mb-2 text-gray-900 border-b border-gray-100 pb-1; }
-.prose-brief h3 { @apply text-base font-semibold mt-4 mb-1 text-gray-800; }
-.prose-brief p  { @apply text-sm leading-6 text-gray-600 mb-3; }
+.prose-brief h1 { @apply mt-2 mb-4 text-2xl font-bold tracking-tight text-[#171527]; }
+.prose-brief h2 { @apply mt-7 mb-3 border-b border-[#ece9f3] pb-2 text-lg font-bold text-[#171527]; }
+.prose-brief h3 { @apply mt-5 mb-1 text-base font-semibold text-[#24324a]; }
+.prose-brief p  { @apply mb-3 text-sm leading-7 text-[#65748b]; }
 .prose-brief ul { @apply list-disc pl-5 mb-3 space-y-1; }
 .prose-brief ol { @apply list-decimal pl-5 mb-3 space-y-1; }
-.prose-brief li { @apply text-sm leading-6 text-gray-600; }
-.prose-brief strong { @apply text-gray-900 font-semibold; }
+.prose-brief li { @apply text-sm leading-7 text-[#65748b]; }
+.prose-brief strong { @apply font-semibold text-[#171527]; }

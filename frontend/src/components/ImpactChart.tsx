@@ -11,16 +11,16 @@ import {
 import type { ImpactBucket } from "../api/types";
 
 function barColor(impact: number): string {
-  if (impact >= 7) return "#ef4444";
-  if (impact >= 4) return "#f59e0b";
-  return "#94a3b8";
+  if (impact >= 7) return "#e43d6c";
+  if (impact >= 4) return "#7457ea";
+  return "#cbd8e7";
 }
 
 export function ImpactChart({ data }: { data: ImpactBucket[] }) {
   return (
-    <div className="card p-5">
-      <h3 className="text-sm font-semibold text-gray-900">Impact distribution</h3>
-      <p className="mb-4 text-xs text-gray-400">AI impact scores across changes, last 30 days</p>
+    <div className="card p-6">
+      <h3 className="text-sm font-bold text-[#24324a]">Impact score</h3>
+      <p className="mb-4 mt-0.5 text-xs text-[#94a1b3]">AI-rated urgency, last 30 days</p>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={data} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
