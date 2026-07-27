@@ -160,6 +160,7 @@ export default function LandingPage() {
   const [activeStep, setActiveStep] = useState<StepId>("detect");
   const [navScrolled, setNavScrolled] = useState(false);
   const workflowSectionRef = useRef<HTMLElement>(null);
+  const workflowTriggerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -172,23 +173,37 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
+    let animationFrame = 0;
+
     const updateWorkflowStage = () => {
       const section = workflowSectionRef.current;
-      if (!section || window.innerWidth <= 800) return;
+      const trigger = workflowTriggerRef.current;
+      if (!section || !trigger || window.innerWidth <= 800) return;
 
-      const rect = section.getBoundingClientRect();
-      const travel = Math.max(rect.height - window.innerHeight, 1);
-      const progress = Math.min(0.999, Math.max(0, (100 - rect.top) / travel));
+      const sectionTop = window.scrollY + section.getBoundingClientRect().top;
+      const triggerTop = window.scrollY + trigger.getBoundingClientRect().top;
+      const start = triggerTop - 92;
+      const end = sectionTop + section.offsetHeight - window.innerHeight;
+      const progress = Math.min(0.999, Math.max(0, (window.scrollY - start) / Math.max(end - start, 1)));
       const nextStep = steps[Math.floor(progress * steps.length)];
       setActiveStep((current) => current === nextStep.id ? current : nextStep.id);
     };
 
-    updateWorkflowStage();
-    window.addEventListener("scroll", updateWorkflowStage, { passive: true });
-    window.addEventListener("resize", updateWorkflowStage);
+    const requestUpdate = () => {
+      if (animationFrame) return;
+      animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = 0;
+        updateWorkflowStage();
+      });
+    };
+
+    requestUpdate();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
     return () => {
-      window.removeEventListener("scroll", updateWorkflowStage);
-      window.removeEventListener("resize", updateWorkflowStage);
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
     };
   }, []);
 
@@ -288,11 +303,12 @@ export default function LandingPage() {
             <h2>From page change to team action in minutes.</h2>
             <p>No noisy dashboards. Just one clean path from evidence to decision.</p>
           </div>
+          <div ref={workflowTriggerRef} className="lp-workflow-trigger" aria-hidden="true"></div>
           <div className="lp-workflow-shell">
             <div className="lp-workflow-bar">
               <div className="lp-workflow-product">
                 <RadarMark dark />
-                <div><strong>Acme intelligence</strong><span>Live workspace</span></div>
+                <div><strong>Radar Intelligence</strong><span>Live workspace</span></div>
               </div>
               <span className="lp-workflow-status"><i></i> Monitoring 16 pages</span>
             </div>
@@ -314,7 +330,7 @@ export default function LandingPage() {
               })}
             </div>
             <div className="lp-workflow-canvas">
-              <div key={`context-${activeStep}`} className="lp-workflow-context lp-workflow-swipe">
+              <div key={`context-${activeStep}`} className="lp-workflow-context lp-context-swap">
                 <span className="lp-mini-label">Stage {currentStep.number}</span>
                 <h3>{currentStep.title}</h3>
                 <p>{currentStep.copy}</p>
@@ -325,8 +341,10 @@ export default function LandingPage() {
                 <small>Average time to action</small>
                 <strong className="lp-time-value">2m 48s</strong>
               </div>
-              <div key={`preview-${activeStep}`} className="lp-preview-stage lp-workflow-swipe">
-                <WorkflowPreview active={activeStep} />
+              <div className="lp-preview-stage">
+                <div key={`preview-${activeStep}`} className="lp-preview-motion">
+                  <WorkflowPreview active={activeStep} />
+                </div>
               </div>
             </div>
           </div>

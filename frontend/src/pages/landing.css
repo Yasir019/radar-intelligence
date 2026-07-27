@@ -126,9 +126,10 @@
 }
 .lp-radar-art { color: #249168; }
 
-.lp-workflow { min-height: 270vh; background: white; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.lp-workflow { min-height: 230vh; background: white; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.lp-workflow-trigger { height: 1px; margin-top: 53px; }
 .lp-workflow-shell {
-  position: sticky; top: 92px; margin-top: 54px; overflow: visible; border: 0; border-radius: 0; background: white; box-shadow: none;
+  position: sticky; top: 92px; margin-top: 0; overflow: visible; border: 0; border-radius: 0; background: white; box-shadow: none;
 }
 .lp-workflow-bar { height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0; border: 0; }
 .lp-workflow-product { display: flex; align-items: center; gap: 11px; }
@@ -168,10 +169,15 @@
   width: min(100%, 500px); padding: 25px; border: 1px solid #dedce4; border-radius: 10px; background: white;
   box-shadow: 0 22px 60px rgba(36,28,72,.12);
 }
-.lp-workflow-swipe { animation: lp-workflow-swipe .48s cubic-bezier(.2,.75,.25,1) both; }
-@keyframes lp-workflow-swipe {
-  from { opacity: 0; transform: translateX(34px); filter: blur(3px); }
-  to { opacity: 1; transform: translateX(0); filter: blur(0); }
+.lp-preview-motion { width: 100%; display: grid; place-items: center; animation: lp-preview-swap .42s cubic-bezier(.2,.75,.25,1) both; }
+.lp-context-swap { animation: lp-context-swap .36s ease both; }
+@keyframes lp-preview-swap {
+  from { opacity: 0; transform: translateX(18px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes lp-context-swap {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .lp-preview-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .lp-preview-head > div { display: flex; flex-direction: column; gap: 4px; }
@@ -310,7 +316,7 @@
 @keyframes lp-live-pulse { 0% { box-shadow: 0 0 0 0 rgba(143,115,255,.36); } 70%,100% { box-shadow: 0 0 0 8px rgba(143,115,255,0); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .lp-strategy-media img, .lp-strategy-overlay span i, .lp-workflow-swipe { animation: none; }
+  .lp-strategy-media img, .lp-strategy-overlay span i, .lp-preview-motion, .lp-context-swap { animation: none; }
 }
 
 .lp-final-section { padding: 0; background: #f8f8f5; }
