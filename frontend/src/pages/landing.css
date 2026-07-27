@@ -126,7 +126,8 @@
 }
 .lp-radar-art { color: #249168; }
 
-.lp-workflow { min-height: 230vh; background: white; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.lp-workflow { height: 320vh; min-height: 2200px; background: white; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.lp-workflow > .lp-container { height: 100%; }
 .lp-workflow-trigger { height: 1px; margin-top: 53px; }
 .lp-workflow-shell {
   position: sticky; top: 92px; margin-top: 0; overflow: visible; border: 0; border-radius: 0; background: white; box-shadow: none;
@@ -347,7 +348,8 @@
   .lp-proof-grid { grid-template-columns: 1fr; }
   .lp-pricing-grid { grid-template-columns: 1fr; }
   .lp-proof-card { height: 310px; }
-  .lp-workflow { min-height: 0; }
+  .lp-workflow { height: auto; min-height: 0; }
+  .lp-workflow > .lp-container { height: auto; }
   .lp-workflow-shell { position: static; }
   .lp-workflow-canvas, .lp-automation-grid { grid-template-columns: 1fr; }
   .lp-workflow-context { padding: 34px 28px; border-right: 0; border-bottom: 1px solid #e5e2e9; }
