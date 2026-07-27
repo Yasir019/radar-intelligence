@@ -6,7 +6,8 @@
   background: #f8f8f5;
   color: var(--ink);
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-  overflow: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 .lp-page * { box-sizing: border-box; }
