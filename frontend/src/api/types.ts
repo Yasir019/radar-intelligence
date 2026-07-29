@@ -83,6 +83,29 @@ export interface Brief {
   generated_at: string;
 }
 
+export interface Battlecard {
+  id: number;
+  competitor_id: number;
+  content_md: string;
+  generated_at: string;
+}
+
+export interface PredictedMove {
+  move: string;
+  timeframe: string;
+  confidence: number;
+  rationale: string;
+}
+
+export interface Prediction {
+  id: number;
+  competitor_id: number;
+  strategy_profile: string;
+  threat_level: number;
+  moves: PredictedMove[];
+  generated_at: string;
+}
+
 export interface UserSettings {
   slack_webhook_url: string | null;
   alert_impact_threshold: number;

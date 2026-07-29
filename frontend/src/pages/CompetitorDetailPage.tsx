@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { ChangeEvent, CheckRunResult, Competitor, PageType } from "../api/types";
 import { ChangeTimeline } from "../components/ChangeTimeline";
+import { BattlecardCard, PredictionCard } from "../components/CompetitorAI";
 import { inputClass, Modal, primaryBtn } from "../components/Modal";
 import { UrlTable } from "../components/UrlTable";
 
@@ -162,6 +163,11 @@ export default function CompetitorDetailPage() {
           <h3 className="text-sm font-semibold text-gray-900">Tracked pages</h3>
         </div>
         <UrlTable urls={competitor.tracked_urls} onChanged={onChecked} onDeleted={load} />
+      </div>
+
+      <div className="grid items-start gap-4 xl:grid-cols-2">
+        <BattlecardCard competitorId={competitor.id} />
+        <PredictionCard competitorId={competitor.id} />
       </div>
 
       <ChangeTimeline changes={changes} title="Change history" />

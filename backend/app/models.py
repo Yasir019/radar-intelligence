@@ -122,6 +122,32 @@ class Notification(Base):
     user: Mapped[User] = relationship(back_populates="notifications")
 
 
+class Battlecard(Base):
+    __tablename__ = "battlecards"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    competitor_id: Mapped[int] = mapped_column(ForeignKey("competitors.id"), index=True)
+    content_md: Mapped[str] = mapped_column(Text)
+    generated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    competitor: Mapped["Competitor"] = relationship()
+
+
+class Prediction(Base):
+    __tablename__ = "predictions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    competitor_id: Mapped[int] = mapped_column(ForeignKey("competitors.id"), index=True)
+    strategy_profile: Mapped[str] = mapped_column(Text)
+    threat_level: Mapped[int] = mapped_column(Integer)
+    moves_json: Mapped[str] = mapped_column(Text)  # list of predicted moves
+    generated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    competitor: Mapped["Competitor"] = relationship()
+
+
 class Brief(Base):
     __tablename__ = "briefs"
 

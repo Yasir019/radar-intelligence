@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
+import AskRadarPage from "./pages/AskRadarPage";
 import { useAuth } from "./context/AuthContext";
 import BriefPage from "./pages/BriefPage";
 import ChangeDetailPage from "./pages/ChangeDetailPage";
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/competitors/:id" element={<CompetitorDetailPage />} />
         <Route path="/changes/:id" element={<ChangeDetailPage />} />
         <Route path="/warroom" element={<WarRoomPage />} />
+        <Route path="/ask" element={<AskRadarPage />} />
         <Route path="/brief" element={<BriefPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

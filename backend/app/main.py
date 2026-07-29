@@ -5,12 +5,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, engine
 from app.routers import (
+    ask,
     auth_router,
+    battlecards,
     briefs,
     changes,
     checks,
     competitors,
     notifications,
+    predictions,
     settings_router,
     stats,
     warroom,
@@ -43,6 +46,9 @@ app.include_router(notifications.router)
 app.include_router(settings_router.router)
 app.include_router(stats.router)
 app.include_router(warroom.router)
+app.include_router(battlecards.router)
+app.include_router(predictions.router)
+app.include_router(ask.router)
 
 
 @app.get("/api/health")

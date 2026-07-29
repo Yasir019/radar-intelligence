@@ -153,6 +153,54 @@ class BriefOut(BaseModel):
     generated_at: datetime
 
 
+# ---------- Battlecard ----------
+
+class BattlecardOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    competitor_id: int
+    content_md: str
+    generated_at: datetime
+
+
+# ---------- Next Move Predictor ----------
+
+class PredictedMove(BaseModel):
+    move: str = Field(description="The specific move the competitor is likely to make next")
+    timeframe: str = Field(description="Expected window, e.g. '4-6 weeks'")
+    confidence: int = Field(ge=0, le=100, description="Confidence percentage")
+    rationale: str = Field(description="One sentence: which observed patterns support this prediction")
+
+
+class PredictionAnalysis(BaseModel):
+    """Structured output the LLM must return for the next-move prediction."""
+
+    strategy_profile: str = Field(description="2-3 sentence 'Strategy DNA' profile of this competitor")
+    threat_level: int = Field(ge=1, le=10, description="Overall competitive threat 1-10")
+    moves: list[PredictedMove] = Field(description="The 3 most likely next moves, most likely first")
+
+
+class PredictionOut(BaseModel):
+    id: int
+    competitor_id: int
+    strategy_profile: str
+    threat_level: int
+    moves: list[PredictedMove]
+    generated_at: datetime
+
+
+# ---------- Ask Radar ----------
+
+class AskMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(max_length=4000)
+
+
+class AskRequest(BaseModel):
+    messages: list[AskMessage] = Field(min_length=1, max_length=20)
+
+
 # ---------- War Room ----------
 
 class WarRoomTurn(BaseModel):

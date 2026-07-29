@@ -3,6 +3,7 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
+  MessageSquare,
   Radar,
   Search,
   Settings,
@@ -17,6 +18,7 @@ const navItems = [
   { to: "/", label: "Overview", icon: LayoutDashboard },
   { to: "/competitors", label: "Competitors", icon: Building2 },
   { to: "/warroom", label: "War Room", icon: Swords },
+  { to: "/ask", label: "Ask Radar", icon: MessageSquare },
   { to: "/brief", label: "AI Brief", icon: FileText },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
