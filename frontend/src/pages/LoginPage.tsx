@@ -1,8 +1,22 @@
-import { Loader2, Radar, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { Check, Eye, EyeOff, Loader2, Radar, Sparkles, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { inputClass, primaryBtn } from "../components/Modal";
 import { useAuth } from "../context/AuthContext";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+interface PasswordRule {
+  label: string;
+  test: (value: string) => boolean;
+}
+
+const PASSWORD_RULES: PasswordRule[] = [
+  { label: "At least 8 characters", test: (v) => v.length >= 8 },
+  { label: "One uppercase letter (A-Z)", test: (v) => /[A-Z]/.test(v) },
+  { label: "One lowercase letter (a-z)", test: (v) => /[a-z]/.test(v) },
+  { label: "One number (0-9)", test: (v) => /\d/.test(v) },
+];
 
 export default function LoginPage() {
   const { login, register, loginWithGoogle } = useAuth();
@@ -13,24 +27,46 @@ export default function LoginPage() {
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [touched, setTouched] = useState({ email: false, password: false });
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const emailValid = EMAIL_REGEX.test(email.trim());
+  const passwordChecks = useMemo(
+    () => PASSWORD_RULES.map((rule) => ({ ...rule, passed: rule.test(password) })),
+    [password],
+  );
+  const passwordValid = passwordChecks.every((r) => r.passed);
+
+  const emailError = touched.email && email.length > 0 && !emailValid;
+  const canSubmit =
+    mode === "login" ? emailValid && password.length > 0 : emailValid && passwordValid;
+
+  const switchMode = (m: "login" | "register") => {
+    setMode(m);
+    setError(null);
+    setNotice(null);
+    setTouched({ email: false, password: false });
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setTouched({ email: true, password: true });
+    if (!canSubmit) return;
     setError(null);
     setNotice(null);
     setBusy(true);
     try {
       if (mode === "login") {
-        await login(email, password);
+        await login(email.trim().toLowerCase(), password);
         navigate("/");
       } else {
-        const result = await register(email, password);
+        const result = await register(email.trim().toLowerCase(), password);
         if (result.needsConfirmation) {
           setNotice("Account created! Check your email and click the confirmation link, then sign in.");
-          setMode("login");
+          switchMode("login");
         } else {
           navigate("/");
         }
@@ -82,7 +118,7 @@ export default function LoginPage() {
             {(["login", "register"] as const).map((m) => (
               <button
                 key={m}
-                onClick={() => setMode(m)}
+                onClick={() => switchMode(m)}
                 className={`rounded-md py-1.5 transition-colors ${
                   mode === m ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
                 }`}
@@ -92,31 +128,81 @@ export default function LoginPage() {
             ))}
           </div>
 
-          <form onSubmit={submit} className="space-y-3">
-            <input
-              type="email"
-              required
-              placeholder="Email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={inputClass}
-            />
-            <input
-              type="password"
-              required
-              minLength={6}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={inputClass}
-            />
+          <form onSubmit={submit} className="space-y-3" noValidate>
+            <div>
+              <input
+                type="email"
+                required
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                autoComplete="email"
+                className={`${inputClass} ${
+                  emailError ? "!border-[#e43d6c] focus:!ring-red-100" : ""
+                }`}
+              />
+              {emailError && (
+                <p className="mt-1 flex items-center gap-1 text-[11px] text-[#e43d6c]">
+                  <X size={11} /> Enter a valid email address (e.g. name@gmail.com)
+                </p>
+              )}
+            </div>
+
+            <div>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
+                  className={`${inputClass} pr-10 ${
+                    mode === "register" && touched.password && password.length > 0 && !passwordValid
+                      ? "!border-[#e43d6c] focus:!ring-red-100"
+                      : ""
+                  }`}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9b97a8] hover:text-[#46425a]"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+
+              {mode === "register" && (password.length > 0 || touched.password) && (
+                <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 rounded-lg border border-[#ece9f3] bg-[#faf9fd] px-3 py-2.5">
+                  {passwordChecks.map((rule) => (
+                    <span
+                      key={rule.label}
+                      className={`flex items-center gap-1.5 text-[11px] ${
+                        rule.passed ? "text-[#168451]" : "text-[#9a95a8]"
+                      }`}
+                    >
+                      {rule.passed ? <Check size={11} /> : <X size={11} />}
+                      {rule.label}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {error && <p className="text-xs text-red-600">{error}</p>}
             {notice && (
               <p className="rounded-lg border border-[#d9f0e3] bg-[#eaf8ef] px-3 py-2 text-xs text-[#168451]">
                 {notice}
               </p>
             )}
-            <button type="submit" disabled={busy} className={`${primaryBtn} w-full`}>
+            <button
+              type="submit"
+              disabled={busy || (touched.email && touched.password && !canSubmit)}
+              className={`${primaryBtn} w-full`}
+            >
               {busy && <Loader2 size={14} className="animate-spin" />}
               {mode === "login" ? "Sign in" : "Create account"}
             </button>

@@ -1,7 +1,8 @@
+import re
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 PageType = Literal["pricing", "changelog", "blog", "features", "other"]
 ChangeCategory = Literal["pricing_change", "new_feature", "messaging_change", "promotion", "other"]
@@ -11,7 +12,23 @@ ChangeCategory = Literal["pricing_change", "new_feature", "messaging_change", "p
 
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=6, max_length=128)
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+    @field_validator("password")
+    @classmethod
+    def password_strength(cls, value: str) -> str:
+        if not re.search(r"[A-Z]", value):
+            raise ValueError("Password must contain an uppercase letter")
+        if not re.search(r"[a-z]", value):
+            raise ValueError("Password must contain a lowercase letter")
+        if not re.search(r"\d", value):
+            raise ValueError("Password must contain a number")
+        return value
 
 
 class LoginRequest(BaseModel):
