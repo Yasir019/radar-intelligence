@@ -34,7 +34,7 @@ export default function ChangeDetailPage() {
         <div className="flex flex-wrap items-center gap-2">
           <span
             className="flex h-9 w-9 items-center justify-center rounded-lg text-xs font-bold text-white"
-            style={{ backgroundColor: change.competitor_color ?? "#6366f1" }}
+            style={{ backgroundColor: change.competitor_color ?? "#7457ea" }}
           >
             {(change.competitor_name ?? "?").slice(0, 2).toUpperCase()}
           </span>

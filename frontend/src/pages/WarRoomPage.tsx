@@ -76,7 +76,7 @@ function TurnBubble({ turn, color, animate }: { turn: WarRoomTurn; color: string
         <div className={`mb-1 flex items-center gap-2 ${isAttacker ? "" : "justify-end"}`}>
           <span
             className="flex h-6 w-6 items-center justify-center rounded-md text-white"
-            style={{ backgroundColor: isAttacker ? color : "#6366f1" }}
+            style={{ backgroundColor: isAttacker ? color : "#7457ea" }}
           >
             {isAttacker ? <Swords size={12} /> : <Shield size={12} />}
           </span>
@@ -102,7 +102,7 @@ function ThinkingIndicator({ speaker, isAttacker, color }: { speaker: string; is
       <div className={`flex items-center gap-2 ${isAttacker ? "" : "flex-row-reverse"}`}>
         <span
           className="flex h-6 w-6 items-center justify-center rounded-md text-white"
-          style={{ backgroundColor: isAttacker ? color : "#6366f1" }}
+          style={{ backgroundColor: isAttacker ? color : "#7457ea" }}
         >
           {isAttacker ? <Swords size={12} /> : <Shield size={12} />}
         </span>

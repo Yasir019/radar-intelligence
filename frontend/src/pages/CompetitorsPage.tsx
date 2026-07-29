@@ -5,7 +5,7 @@ import type { ChangeEvent, Competitor } from "../api/types";
 import { CompetitorCard } from "../components/CompetitorCard";
 import { inputClass, Modal, primaryBtn } from "../components/Modal";
 
-const COLORS = ["#6366f1", "#0ea5e9", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6"];
+const COLORS = ["#7457ea", "#0ea5e9", "#f59e0b", "#10b981", "#e43d6c", "#8b5cf6"];
 
 export default function CompetitorsPage() {
   const [competitors, setCompetitors] = useState<Competitor[]>([]);

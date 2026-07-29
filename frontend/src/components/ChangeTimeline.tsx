@@ -33,7 +33,7 @@ export function ChangeTimeline({ changes, title = "Recent changes" }: { changes:
             >
               <span
                 className="h-9 w-9 shrink-0 rounded-lg flex items-center justify-center text-xs font-bold text-white"
-                style={{ backgroundColor: c.competitor_color ?? "#6366f1" }}
+                style={{ backgroundColor: c.competitor_color ?? "#7457ea" }}
               >
                 {(c.competitor_name ?? "?").slice(0, 2).toUpperCase()}
               </span>
