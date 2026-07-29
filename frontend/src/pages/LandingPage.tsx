@@ -452,33 +452,25 @@ export default function LandingPage() {
               </p>
               <button onClick={openDemo}>Enter the War Room <ArrowRight size={14} /></button>
             </div>
-            <div className="lp-debate">
-              <div className="lp-debate-header">
-                <div><span></span><span></span><span></span></div>
-                <strong>Live strategy room</strong>
-                <small>3 agents active</small>
-              </div>
-              <div className="lp-strategy-media">
-                <img
-                  src="/images/strategy-ai-assistant.webp"
-                  alt="AI assistant analyzing a live competitive strategy session"
-                />
-                <div className="lp-strategy-overlay">
-                  <span><i></i> Live AI simulation</span>
-                  <strong>Three viewpoints. One decisive response.</strong>
+            <div className="lp-debate-stage">
+              <div className="lp-debate">
+                <div className="lp-debate-header">
+                  <div><span></span><span></span><span></span></div>
+                  <strong>Live strategy room</strong>
+                  <small>3 agents live</small>
                 </div>
-              </div>
-              <div className="lp-bubble lp-bubble-red">
-                <span>Acme strategist</span>
-                “Every renewal now begins with our lower price open in another tab.”
-              </div>
-              <div className="lp-bubble lp-bubble-purple">
-                <span>Your VP of strategy</span>
-                “The lower sticker price hides the usage penalty customers meet when they grow.”
-              </div>
-              <div className="lp-bubble lp-bubble-gold">
-                <span>Referee verdict</span>
-                Lead with total cost of ownership. Update renewal objection handling this week.
+                <div className="lp-bubble lp-bubble-red">
+                  <span>Acme strategist</span>
+                  “Every renewal now begins with our lower price open in another tab.”
+                </div>
+                <div className="lp-bubble lp-bubble-purple">
+                  <span>Your VP of strategy</span>
+                  “The lower sticker price hides the usage penalty customers meet when they grow.”
+                </div>
+                <div className="lp-bubble lp-bubble-gold">
+                  <span>Referee verdict</span>
+                  Lead with total cost of ownership. Update renewal objection handling this week.
+                </div>
               </div>
             </div>
           </div>
