@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     service_api_key: str = "change-me-n8n-key"
     n8n_webhook_url: str = ""
     database_url: str = "sqlite:///./radar.db"
+    supabase_url: str = ""
+    supabase_anon_key: str = ""
 
     @property
     def effective_demo_mode(self) -> bool:
