@@ -1,8 +1,8 @@
-from urllib.parse import quote, urlparse
+from urllib.parse import urlparse
 
 
 def company_logo_url(website: str | None) -> str | None:
-    """Return a stable, high-resolution favicon URL for a company website."""
+    """Return the company's favicon URL, allowing the UI to fall back on failure."""
     if not website:
         return None
 
@@ -10,10 +10,15 @@ def company_logo_url(website: str | None) -> str | None:
     if "://" not in candidate:
         candidate = f"https://{candidate}"
 
-    hostname = (urlparse(candidate).hostname or "").lower()
+    parsed = urlparse(candidate)
+    hostname = (parsed.hostname or "").lower()
     if hostname.startswith("www."):
         hostname = hostname[4:]
     if not hostname:
         return None
 
-    return f"https://www.google.com/s2/favicons?domain={quote(hostname)}&sz=128"
+    # Use the site's real icon rather than a logo service that may return a
+    # generic globe for unknown domains. A missing icon produces an image error,
+    # and CompanyLogo then keeps the original initials badge.
+    scheme = parsed.scheme if parsed.scheme in {"http", "https"} else "https"
+    return f"{scheme}://{hostname}/favicon.ico"
