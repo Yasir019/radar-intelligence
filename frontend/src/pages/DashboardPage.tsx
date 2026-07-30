@@ -1,17 +1,21 @@
 import {
   AlertTriangle,
+  Activity,
   ArrowDown,
   ArrowRight,
   ArrowUp,
   Building2,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   Columns3,
   FileText,
   Filter,
+  Link2,
   MoreVertical,
   Rocket,
   Search,
+  Sparkles,
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -26,7 +30,7 @@ import {
   YAxis,
 } from "recharts";
 import { api } from "../api/client";
-import type { ChangeEvent, DashboardStats } from "../api/types";
+import type { ChangeEvent, DashboardStats, StatsOverview } from "../api/types";
 import { CompanyLogo } from "../components/CompanyLogo";
 
 const RANGE_OPTIONS = [
@@ -83,6 +87,7 @@ function Growth({ value }: { value: number }) {
 export default function DashboardPage() {
   const [days, setDays] = useState(30);
   const [dashboard, setDashboard] = useState<DashboardStats | null>(null);
+  const [overview, setOverview] = useState<StatsOverview | null>(null);
   const [changes, setChanges] = useState<ChangeEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -94,6 +99,7 @@ export default function DashboardPage() {
     setLoading(true);
     Promise.all([
       api.get<DashboardStats>(`/stats/dashboard?days=${days}`).then((response) => setDashboard(response.data)),
+      api.get<StatsOverview>("/stats/overview").then((response) => setOverview(response.data)),
       api.get<ChangeEvent[]>("/changes?limit=100").then((response) => setChanges(response.data)),
     ]).finally(() => setLoading(false));
   }, [days]);
@@ -132,7 +138,7 @@ export default function DashboardPage() {
   const safePage = Math.min(page, pageCount);
   const visibleCompetitors = filteredCompetitors.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-  if (loading || !dashboard) {
+  if (loading || !dashboard || !overview) {
     return <div className="card p-12 text-center text-sm text-gray-400">Preparing dashboard…</div>;
   }
 
@@ -140,6 +146,48 @@ export default function DashboardPage() {
     ...point,
     label: new Date(point.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
   }));
+
+  const topRangeStart = dashboard.timeline[0]?.date
+    ? new Date(dashboard.timeline[0].date).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+    : "Last 30 days";
+  const topRangeEnd = dashboard.timeline.at(-1)?.date
+    ? new Date(dashboard.timeline.at(-1)!.date).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "";
+
+  const topMetrics = [
+    {
+      label: "Competitors",
+      value: overview.competitors,
+      helper: "Active workspace",
+      icon: Building2,
+      style: "bg-[#f0eaff] text-[#6c47d4]",
+    },
+    {
+      label: "Tracked pages",
+      value: overview.tracked_urls,
+      helper: "Currently monitored",
+      icon: Link2,
+      style: "bg-[#e6f7f0] text-[#159268]",
+    },
+    {
+      label: "Changes this week",
+      value: overview.changes_7d,
+      helper: "Detected in 7 days",
+      icon: Activity,
+      style: "bg-[#e8f4ff] text-[#238dd2]",
+    },
+    {
+      label: "High impact",
+      value: overview.high_impact_7d,
+      helper: "Need attention",
+      icon: AlertTriangle,
+      style: "bg-[#fff0e8] text-[#ef624c]",
+    },
+  ];
 
   const summaryMetrics = [
     {
@@ -174,6 +222,49 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-[1480px] space-y-3">
+      <section className="pb-1 pt-0.5">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="!font-['Georgia'] !text-[27px] !font-bold !tracking-[-0.025em]">
+              Good morning. Here’s what moved.
+            </h1>
+            <p className="mt-1 text-[11px] text-[#87818d]">
+              Your market activity, analyzed and prioritized by Radar.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="inline-flex items-center gap-2 rounded-lg border border-[#e3dfe7] bg-white px-3.5 py-2.5 text-[10px] font-semibold text-[#68616d]">
+              <CalendarDays size={14} />
+              {topRangeStart}{topRangeEnd ? ` – ${topRangeEnd}` : ""}
+            </div>
+            <Link
+              to="/brief"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#6742cf] px-4 py-2.5 text-[10px] font-bold text-white shadow-[0_8px_18px_rgba(103,66,207,.22)] transition hover:bg-[#5732bd]"
+            >
+              <Sparkles size={14} />
+              Generate brief
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {topMetrics.map(({ label, value, helper, icon: Icon, style }) => (
+            <div key={label} className="card flex min-h-[94px] items-center gap-3.5 px-5 py-4 !rounded-xl">
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${style}`}>
+                <Icon size={17} />
+              </span>
+              <div>
+                <p className="text-[10px] font-medium text-[#77717d]">{label}</p>
+                <p className="mt-0.5 text-[21px] font-extrabold leading-none tracking-[-0.04em] text-[#211b2a]">
+                  {value}
+                </p>
+                <p className="mt-2 text-[8px] font-medium text-[#a29ca6]">{helper}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="card overflow-hidden !rounded-xl">
           <div className="px-4 pb-0 pt-4 sm:px-5">
