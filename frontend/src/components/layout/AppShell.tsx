@@ -1,8 +1,6 @@
 import {
   Building2,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -12,7 +10,7 @@ import {
   Settings,
   Swords,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { NotificationBell } from "../NotificationBell";
@@ -26,7 +24,7 @@ const navItems = [
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
-function NavItems({ mobile = false, collapsed = false }: { mobile?: boolean; collapsed?: boolean }) {
+function NavItems({ mobile = false }: { mobile?: boolean }) {
   return (
     <>
       {navItems.map(({ to, label, icon: Icon }) => (
@@ -39,18 +37,15 @@ function NavItems({ mobile = false, collapsed = false }: { mobile?: boolean; col
               ? `flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition ${
                   isActive ? "bg-[#7457ea] text-white" : "text-[#747080]"
                 }`
-              : `flex items-center rounded-xl py-2.5 text-[13px] font-semibold transition-all ${
-                  collapsed ? "justify-center px-2" : "gap-3 px-3.5"
-                } ${
+              : `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold transition-all ${
                   isActive
                     ? "bg-[#f0edff] text-[#4d2eae]"
                     : "text-[#5f6879] hover:bg-[#f7f6fa] hover:text-[#211b2a]"
                 }`
           }
-          title={collapsed ? label : undefined}
         >
           <Icon size={mobile ? 15 : 17} strokeWidth={2} />
-          {!collapsed && label}
+          {label}
         </NavLink>
       ))}
     </>
@@ -60,50 +55,27 @@ function NavItems({ mobile = false, collapsed = false }: { mobile?: boolean; col
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const initials = user?.email?.slice(0, 2).toUpperCase() ?? "RA";
-  const [collapsed, setCollapsed] = useState(() => localStorage.getItem("radar-sidebar") === "collapsed");
 
   return (
     <div className="min-h-screen bg-[#f7f7fa] lg:flex">
-      <aside
-        className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-[#e7e3ea] bg-white px-2.5 py-5 text-[#211b2a] transition-[width] duration-300 lg:flex ${
-          collapsed ? "w-[66px]" : "w-[190px]"
-        }`}
-      >
-        <div className={`flex items-center ${collapsed ? "justify-center" : "gap-2.5 px-1"}`}>
+      <aside className="sticky top-0 hidden h-screen w-[184px] shrink-0 flex-col border-r border-[#e7e3ea] bg-white px-2.5 py-5 text-[#211b2a] lg:flex">
+        <div className="flex items-center gap-2.5 px-1">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#6541cf] text-white shadow-[0_6px_14px_rgba(101,65,207,0.2)]">
             <Radar size={17} strokeWidth={2.5} />
           </span>
-          {!collapsed && <span className="text-[18px] font-extrabold tracking-[-0.04em] text-[#17142b]">Radar.</span>}
+          <span className="text-[18px] font-extrabold tracking-[-0.04em] text-[#17142b]">Radar.</span>
         </div>
 
-        <button
-          type="button"
-          onClick={() =>
-            setCollapsed((current) => {
-              localStorage.setItem("radar-sidebar", current ? "expanded" : "collapsed");
-              return !current;
-            })
-          }
-          className="absolute right-2 top-[72px] z-10 flex h-7 w-7 items-center justify-center rounded-lg bg-[#f1edfb] text-[#5d3fc1] transition hover:bg-[#e8e1f8]"
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        </button>
-
-        <nav className="mt-14 flex flex-1 flex-col gap-1.5">
-          <NavItems collapsed={collapsed} />
+        <nav className="mt-12 flex flex-1 flex-col gap-1.5">
+          <NavItems />
         </nav>
 
         <button
           onClick={logout}
-          className={`flex items-center rounded-xl py-2.5 text-[13px] font-semibold text-[#60697a] transition hover:bg-[#f7f6fa] hover:text-[#211b2a] ${
-            collapsed ? "justify-center px-2" : "gap-3 px-3.5"
-          }`}
-          title={collapsed ? "Log out" : undefined}
+          className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-semibold text-[#60697a] transition hover:bg-[#f7f6fa] hover:text-[#211b2a]"
         >
           <LogOut size={17} />
-          {!collapsed && "Log out"}
+          Log out
         </button>
       </aside>
 
