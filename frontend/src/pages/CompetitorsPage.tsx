@@ -121,8 +121,8 @@ export default function CompetitorsPage() {
     <div className="mx-auto max-w-[1450px] space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="!font-['Georgia'] !text-[44px] !font-bold !tracking-[-0.035em]">Competitors</h1>
-          <p className="mt-1 text-[15px] text-[#625d6b]">
+          <h1 className="!font-['Georgia'] !text-[40px] !font-bold !tracking-[-0.035em]">Competitors</h1>
+          <p className="mt-1 text-sm text-[#625d6b]">
             Track companies, monitor key pages, and spot meaningful movement.
           </p>
         </div>
@@ -153,13 +153,13 @@ export default function CompetitorsPage() {
             style: "bg-[#eee9ff] text-[#4c2db8]",
           },
         ].map(({ icon: Icon, value, label, style }) => (
-          <div key={label} className="card flex min-h-[112px] items-center gap-4 px-6 py-5 !rounded-xl">
-            <span className={`flex h-11 w-11 items-center justify-center rounded-full ${style}`}>
-              <Icon size={19} />
+          <div key={label} className="card flex min-h-[100px] items-center gap-4 px-5 py-4 !rounded-xl">
+            <span className={`flex h-10 w-10 items-center justify-center rounded-full ${style}`}>
+              <Icon size={17} />
             </span>
             <div>
-              <strong className="block text-[25px] leading-none text-[#241f2d]">{value}</strong>
-              <span className="mt-2 block text-[12px] font-medium text-[#706a78]">{label}</span>
+              <strong className="block text-[22px] leading-none text-[#241f2d]">{value}</strong>
+              <span className="mt-2 block text-[11px] font-medium text-[#706a78]">{label}</span>
             </div>
           </div>
         ))}
@@ -257,7 +257,7 @@ export default function CompetitorsPage() {
           </button>
         </div>
       ) : (
-        <div className={view === "grid" ? "grid gap-5 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
+        <div className={view === "grid" ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
           {filteredCompetitors.map((competitor) => (
             <CompetitorCard
               key={competitor.id}

@@ -43,8 +43,8 @@ function NavItems({ mobile = false, collapsed = false }: { mobile?: boolean; col
                   collapsed ? "justify-center px-2" : "gap-3 px-3.5"
                 } ${
                   isActive
-                    ? "border border-white/15 bg-white/15 text-white shadow-[0_10px_24px_rgba(25,8,65,0.2)]"
-                    : "text-white/68 hover:bg-white/10 hover:text-white"
+                    ? "bg-[#f0edff] text-[#4d2eae]"
+                    : "text-[#5f6879] hover:bg-[#f7f6fa] hover:text-[#211b2a]"
                 }`
           }
           title={collapsed ? label : undefined}
@@ -65,15 +65,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-[#f7f7fa] lg:flex">
       <aside
-        className={`sticky top-0 hidden h-screen shrink-0 flex-col bg-[linear-gradient(180deg,#46248F_0%,#35156f_58%,#281052_100%)] px-3 py-6 text-white shadow-[12px_0_35px_rgba(49,20,104,0.13)] transition-[width] duration-300 lg:flex ${
-          collapsed ? "w-[78px]" : "w-[210px]"
+        className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-[#e7e3ea] bg-white px-3 py-6 text-[#211b2a] transition-[width] duration-300 lg:flex ${
+          collapsed ? "w-[78px]" : "w-[222px]"
         }`}
       >
         <div className={`flex items-center ${collapsed ? "justify-center" : "gap-2.5 px-1"}`}>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/12 text-white shadow-[0_8px_20px_rgba(28,8,70,0.24)]">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#6541cf] text-white shadow-[0_8px_18px_rgba(101,65,207,0.22)]">
             <Radar size={19} strokeWidth={2.5} />
           </span>
-          {!collapsed && <span className="text-lg font-extrabold tracking-[-0.04em] text-white">Radar.</span>}
+          {!collapsed && <span className="text-[20px] font-extrabold tracking-[-0.04em] text-[#17142b]">Radar.</span>}
         </div>
 
         <button
@@ -97,7 +97,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <button
           onClick={logout}
-          className={`flex items-center rounded-xl py-2.5 text-[13px] font-semibold text-white/68 transition hover:bg-white/10 hover:text-white ${
+          className={`flex items-center rounded-xl py-2.5 text-[13px] font-semibold text-[#60697a] transition hover:bg-[#f7f6fa] hover:text-[#211b2a] ${
             collapsed ? "justify-center px-2" : "gap-3 px-3.5"
           }`}
           title={collapsed ? "Log out" : undefined}
