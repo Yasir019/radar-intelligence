@@ -65,15 +65,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-[#f7f7fa] lg:flex">
       <aside
-        className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-[#e7e3ea] bg-white px-3 py-6 text-[#211b2a] transition-[width] duration-300 lg:flex ${
-          collapsed ? "w-[78px]" : "w-[222px]"
+        className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-[#e7e3ea] bg-white px-2.5 py-5 text-[#211b2a] transition-[width] duration-300 lg:flex ${
+          collapsed ? "w-[66px]" : "w-[190px]"
         }`}
       >
         <div className={`flex items-center ${collapsed ? "justify-center" : "gap-2.5 px-1"}`}>
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#6541cf] text-white shadow-[0_8px_18px_rgba(101,65,207,0.22)]">
-            <Radar size={19} strokeWidth={2.5} />
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#6541cf] text-white shadow-[0_6px_14px_rgba(101,65,207,0.2)]">
+            <Radar size={17} strokeWidth={2.5} />
           </span>
-          {!collapsed && <span className="text-[20px] font-extrabold tracking-[-0.04em] text-[#17142b]">Radar.</span>}
+          {!collapsed && <span className="text-[18px] font-extrabold tracking-[-0.04em] text-[#17142b]">Radar.</span>}
         </div>
 
         <button
@@ -84,14 +84,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               return !current;
             })
           }
-          className="absolute -right-3 top-[74px] z-10 flex h-7 w-7 items-center justify-center rounded-full border border-[#ddd7ea] bg-white text-[#46248F] shadow-md transition hover:scale-105"
+          className="absolute right-2 top-[72px] z-10 flex h-7 w-7 items-center justify-center rounded-lg bg-[#f1edfb] text-[#5d3fc1] transition hover:bg-[#e8e1f8]"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
 
-        <nav className="mt-14 flex flex-1 flex-col gap-2">
+        <nav className="mt-14 flex flex-1 flex-col gap-1.5">
           <NavItems collapsed={collapsed} />
         </nav>
 
