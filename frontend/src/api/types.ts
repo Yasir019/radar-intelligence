@@ -131,3 +131,35 @@ export interface StatsOverview {
   timeline: TimelineBucket[];
   impact_distribution: ImpactBucket[];
 }
+
+export interface DashboardSummary {
+  competitors: number;
+  total_changes: number;
+  changes_growth_pct: number;
+  high_impact: number;
+  high_impact_growth_pct: number;
+  new_launches: number;
+  launches_growth_pct: number;
+}
+
+export interface DashboardCompetitorRow {
+  competitor_id: number;
+  competitor_name: string;
+  competitor_color: string;
+  competitor_logo_url: string | null;
+  activity_score: number;
+  activity_level: "Very high" | "High" | "Medium" | "Low";
+  change_percent: number;
+  total_changes: number;
+  high_impact: number;
+  top_movement: ChangeCategory | "other";
+  last_change: string | null;
+  trend: number[];
+}
+
+export interface DashboardStats {
+  days: number;
+  timeline: TimelineBucket[];
+  summary: DashboardSummary;
+  competitors: DashboardCompetitorRow[];
+}

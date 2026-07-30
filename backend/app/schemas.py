@@ -278,3 +278,35 @@ class StatsOverview(BaseModel):
     high_impact_7d: int
     timeline: list[TimelineBucket]
     impact_distribution: list[ImpactBucket]
+
+
+class DashboardSummary(BaseModel):
+    competitors: int
+    total_changes: int
+    changes_growth_pct: int
+    high_impact: int
+    high_impact_growth_pct: int
+    new_launches: int
+    launches_growth_pct: int
+
+
+class DashboardCompetitorRow(BaseModel):
+    competitor_id: int
+    competitor_name: str
+    competitor_color: str
+    competitor_logo_url: str | None = None
+    activity_score: int
+    activity_level: str
+    change_percent: int
+    total_changes: int
+    high_impact: int
+    top_movement: str
+    last_change: datetime | None
+    trend: list[int]
+
+
+class DashboardStats(BaseModel):
+    days: int
+    timeline: list[TimelineBucket]
+    summary: DashboardSummary
+    competitors: list[DashboardCompetitorRow]

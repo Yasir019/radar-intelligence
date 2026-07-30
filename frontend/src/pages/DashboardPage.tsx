@@ -1,15 +1,17 @@
 import {
   AlertTriangle,
+  ArrowDown,
   ArrowRight,
+  ArrowUp,
   Building2,
-  CalendarDays,
+  ChevronLeft,
   ChevronRight,
+  Columns3,
   FileText,
   Filter,
-  Link2,
-  Loader2,
-  RefreshCw,
-  Sparkles,
+  MoreVertical,
+  Rocket,
+  Search,
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -24,24 +26,38 @@ import {
   YAxis,
 } from "recharts";
 import { api } from "../api/client";
-import type { ChangeEvent, Competitor, StatsOverview } from "../api/types";
+import type { ChangeEvent, DashboardStats } from "../api/types";
 import { CompanyLogo } from "../components/CompanyLogo";
 
-type MovementFilter = "all" | "high" | "pricing" | "features";
-
-const metricStyles = [
-  { icon: Building2, iconClass: "bg-[#f0eaff] text-[#6d45d8]" },
-  { icon: Link2, iconClass: "bg-[#e6f7f0] text-[#159268]" },
-  { icon: TrendingUp, iconClass: "bg-[#e7f3ff] text-[#1688d4]" },
-  { icon: AlertTriangle, iconClass: "bg-[#fff0e8] text-[#ef624c]" },
+const RANGE_OPTIONS = [
+  { days: 7, label: "7D" },
+  { days: 30, label: "30D" },
+  { days: 90, label: "90D" },
+  { days: 180, label: "6M" },
+  { days: 365, label: "1Y" },
 ];
 
 const categoryLabels: Record<string, string> = {
-  pricing_change: "Pricing",
   new_feature: "Product & features",
-  messaging_change: "Messaging",
-  promotion: "Promotion",
+  pricing_change: "Pricing",
+  messaging_change: "Content",
+  promotion: "Partnerships",
   other: "Other",
+};
+
+const movementPill: Record<string, string> = {
+  new_feature: "border-violet-200 bg-violet-50 text-violet-600",
+  pricing_change: "border-orange-200 bg-orange-50 text-orange-600",
+  messaging_change: "border-sky-200 bg-sky-50 text-sky-600",
+  promotion: "border-emerald-200 bg-emerald-50 text-emerald-600",
+  other: "border-slate-200 bg-slate-50 text-slate-500",
+};
+
+const activityPill: Record<string, string> = {
+  "Very high": "border-emerald-200 bg-emerald-50 text-emerald-700",
+  High: "border-green-200 bg-green-50 text-green-700",
+  Medium: "border-amber-200 bg-amber-50 text-amber-700",
+  Low: "border-slate-200 bg-slate-50 text-slate-500",
 };
 
 function formatDateTime(value: string): string {
@@ -54,270 +70,272 @@ function formatDateTime(value: string): string {
   });
 }
 
-function matchesFilter(change: ChangeEvent, filter: MovementFilter): boolean {
-  if (filter === "all") return true;
-  if (filter === "high") return (change.impact_score ?? 0) >= 7;
-  if (filter === "pricing") return change.category === "pricing_change" || change.page_type === "pricing";
-  return change.category === "new_feature" || change.page_type === "features";
+function Growth({ value }: { value: number }) {
+  const positive = value >= 0;
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold ${positive ? "text-emerald-600" : "text-red-500"}`}>
+      {positive ? <ArrowUp size={9} /> : <ArrowDown size={9} />}
+      {Math.abs(value)}%
+    </span>
+  );
 }
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<StatsOverview | null>(null);
+  const [days, setDays] = useState(30);
+  const [dashboard, setDashboard] = useState<DashboardStats | null>(null);
   const [changes, setChanges] = useState<ChangeEvent[]>([]);
-  const [competitors, setCompetitors] = useState<Competitor[]>([]);
-  const [checkingAll, setCheckingAll] = useState(false);
-  const [movementFilter, setMovementFilter] = useState<MovementFilter>("all");
-
-  const load = () =>
-    Promise.all([
-      api.get<StatsOverview>("/stats/overview").then((response) => setStats(response.data)),
-      api.get<ChangeEvent[]>("/changes?limit=200").then((response) => setChanges(response.data)),
-      api.get<Competitor[]>("/competitors").then((response) => setCompetitors(response.data)),
-    ]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [activeOnly, setActiveOnly] = useState(false);
+  const [showTopMovement, setShowTopMovement] = useState(true);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
-    load();
-  }, []);
+    setLoading(true);
+    Promise.all([
+      api.get<DashboardStats>(`/stats/dashboard?days=${days}`).then((response) => setDashboard(response.data)),
+      api.get<ChangeEvent[]>("/changes?limit=100").then((response) => setChanges(response.data)),
+    ]).finally(() => setLoading(false));
+  }, [days]);
 
-  const checkAll = async () => {
-    setCheckingAll(true);
-    try {
-      await api.post("/checks/run");
-      await load();
-    } finally {
-      setCheckingAll(false);
-    }
-  };
+  const priorityAlerts = useMemo(() => {
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+    return changes
+      .filter(
+        (change) =>
+          new Date(`${change.detected_at}${/z$|[+-]\d\d:\d\d$/i.test(change.detected_at) ? "" : "Z"}`).getTime() >= cutoff,
+      )
+      .sort(
+        (a, b) =>
+          (b.impact_score ?? 0) - (a.impact_score ?? 0) ||
+          new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime(),
+      )
+      .slice(0, 4);
+  }, [changes, days]);
 
-  const movementData = useMemo(() => {
-    if (!stats) return [];
-    if (movementFilter === "all") {
-      return stats.timeline.map((point) => ({
-        ...point,
-        label: new Date(point.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-      }));
-    }
-    const counts = new Map<string, number>();
-    changes.filter((change) => matchesFilter(change, movementFilter)).forEach((change) => {
-      const key = change.detected_at.slice(0, 10);
-      counts.set(key, (counts.get(key) ?? 0) + 1);
-    });
-    return stats.timeline.map((point) => ({
-      ...point,
-      count: counts.get(point.date.slice(0, 10)) ?? 0,
-      label: new Date(point.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-    }));
-  }, [changes, movementFilter, stats]);
+  const filteredCompetitors = useMemo(() => {
+    if (!dashboard) return [];
+    const query = search.trim().toLowerCase();
+    return dashboard.competitors.filter(
+      (competitor) =>
+        (!query || competitor.competitor_name.toLowerCase().includes(query)) &&
+        (!activeOnly || competitor.activity_score >= 35),
+    );
+  }, [activeOnly, dashboard, search]);
 
-  const priorityAlerts = useMemo(
-    () =>
-      [...changes]
-        .filter((change) => (change.impact_score ?? 0) >= 4)
-        .sort(
-          (a, b) =>
-            (b.impact_score ?? 0) - (a.impact_score ?? 0) ||
-            new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime(),
-        )
-        .slice(0, 4),
-    [changes],
-  );
+  useEffect(() => {
+    setPage(1);
+  }, [search, activeOnly, days]);
 
-  const metricData = stats
-    ? [
-        ["Competitors", stats.competitors, "Active workspace"],
-        ["Tracked pages", stats.tracked_urls, "Currently monitored"],
-        ["Changes this week", stats.changes_7d, "Detected in 7 days"],
-        ["High impact", stats.high_impact_7d, "Need attention"],
-      ]
-    : [];
+  const pageSize = 5;
+  const pageCount = Math.max(1, Math.ceil(filteredCompetitors.length / pageSize));
+  const safePage = Math.min(page, pageCount);
+  const visibleCompetitors = filteredCompetitors.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-  if (!stats) {
-    return <div className="card p-12 text-center text-sm text-gray-400">Loading intelligence…</div>;
+  if (loading || !dashboard) {
+    return <div className="card p-12 text-center text-sm text-gray-400">Preparing dashboard…</div>;
   }
 
-  const rangeStart = stats.timeline[0]?.date
-    ? new Date(stats.timeline[0].date).toLocaleDateString(undefined, { month: "short", day: "numeric" })
-    : "Last 30 days";
-  const rangeEnd = stats.timeline.at(-1)?.date
-    ? new Date(stats.timeline.at(-1)!.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })
-    : "";
+  const chartData = dashboard.timeline.map((point) => ({
+    ...point,
+    label: new Date(point.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+  }));
+
+  const summaryMetrics = [
+    {
+      label: "Competitors",
+      value: dashboard.summary.competitors,
+      growth: null,
+      icon: Building2,
+      style: "bg-[#eee8ff] text-[#6745cf]",
+    },
+    {
+      label: "Total changes",
+      value: dashboard.summary.total_changes,
+      growth: dashboard.summary.changes_growth_pct,
+      icon: TrendingUp,
+      style: "bg-[#e8f7f0] text-[#188e68]",
+    },
+    {
+      label: "High impact",
+      value: dashboard.summary.high_impact,
+      growth: dashboard.summary.high_impact_growth_pct,
+      icon: AlertTriangle,
+      style: "bg-[#eee8ff] text-[#7651dc]",
+    },
+    {
+      label: "New launches",
+      value: dashboard.summary.new_launches,
+      growth: dashboard.summary.launches_growth_pct,
+      icon: Rocket,
+      style: "bg-[#fff2df] text-[#e68b25]",
+    },
+  ];
 
   return (
-    <div className="mx-auto max-w-[1440px] space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-4 py-1">
-        <div>
-          <h1 className="!text-[26px] !font-extrabold">Good morning. Here’s what moved.</h1>
-          <p className="mt-1 text-sm text-[#7d8797]">Your market activity, analyzed and prioritized by Radar.</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-2 rounded-xl border border-[#e2dfe8] bg-white px-3.5 py-2.5 text-xs font-semibold text-[#5f6672]">
-            <CalendarDays size={15} className="text-[#7a6e91]" />
-            {rangeStart}{rangeEnd ? ` – ${rangeEnd}` : ""}
-          </div>
-          <Link
-            to="/brief"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#6541cf] px-4 py-2.5 text-xs font-bold text-white shadow-[0_8px_20px_rgba(101,65,207,0.24)] transition hover:bg-[#5533bd]"
-          >
-            <Sparkles size={15} />
-            Generate brief
-          </Link>
-        </div>
-      </div>
-
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {metricData.map(([label, value, helper], index) => {
-          const style = metricStyles[index];
-          const Icon = style.icon;
-          return (
-            <div key={label} className="card flex min-h-[108px] items-center gap-4 px-5 py-4">
-              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${style.iconClass}`}>
-                <Icon size={19} />
-              </span>
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-[#737785]">{label}</p>
-                <p className="mt-0.5 text-[24px] font-extrabold leading-none tracking-[-0.04em] text-[#161322]">
-                  {value}
-                </p>
-                <p className="mt-2 text-[10px] font-medium text-[#9a9daa]">{helper}</p>
+    <div className="mx-auto max-w-[1480px] space-y-3">
+      <section className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="card overflow-hidden !rounded-xl">
+          <div className="px-4 pb-0 pt-4 sm:px-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h1 className="!font-['Georgia'] !text-[18px] !font-bold !tracking-[-0.02em]">Market movement</h1>
+                <p className="mt-0.5 text-[10px] text-[#97919d]">Activity volume over time</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex rounded-lg border border-[#e6e2e9] bg-[#faf9fb] p-0.5">
+                  {RANGE_OPTIONS.map((option) => (
+                    <button
+                      key={option.days}
+                      type="button"
+                      onClick={() => setDays(option.days)}
+                      className={`rounded-md px-2.5 py-1.5 text-[9px] font-bold transition ${
+                        days === option.days
+                          ? "bg-[#2e2559] text-white shadow-sm"
+                          : "text-[#89838f] hover:text-[#3d3745]"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#e6e2e9] bg-white text-[#77717e]"
+                  aria-label="Chart filters"
+                >
+                  <Filter size={13} />
+                </button>
               </div>
             </div>
-          );
-        })}
-      </section>
 
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
-        <div className="card p-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 className="text-base font-extrabold text-[#1f1a2d]">Market movement</h2>
-              <p className="mt-0.5 text-[11px] text-[#9995a2]">Activity volume over the last 30 days</p>
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {[
+                ["#6544d7", "All activity"],
+                ["#8a6aef", "Product & features"],
+                ["#f07b43", "Pricing"],
+                ["#1b9a72", "Partnerships"],
+                ["#2696df", "Leadership"],
+              ].map(([color, label]) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-[#ece9ef] bg-white px-2 py-1 text-[8px] font-semibold text-[#716b76]"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
+                  {label}
+                </span>
+              ))}
             </div>
-            <button
-              type="button"
-              onClick={checkAll}
-              disabled={checkingAll}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#e2dfe8] bg-white px-3 py-2 text-[11px] font-bold text-[#625b70] transition hover:bg-[#faf9fc] disabled:opacity-50"
-            >
-              {checkingAll ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
-              {checkingAll ? "Scanning" : "Scan now"}
-            </button>
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {(
-              [
-                ["all", "All activity"],
-                ["high", "High impact"],
-                ["pricing", "Pricing"],
-                ["features", "Product & features"],
-              ] as [MovementFilter, string][]
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setMovementFilter(value)}
-                className={`rounded-lg border px-3 py-1.5 text-[10px] font-semibold transition ${
-                  movementFilter === value
-                    ? "border-[#8b6ee8] bg-[#f1edff] text-[#5d3ac3]"
-                    : "border-[#ebe8ef] bg-white text-[#7d7885] hover:bg-[#faf9fc]"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-3 h-[270px]">
+          <div className="h-[265px] px-2 pt-2 sm:px-3">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={movementData} margin={{ top: 12, right: 10, left: -26, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#eceaf0" vertical={false} />
+              <LineChart data={chartData} margin={{ top: 10, right: 12, left: -28, bottom: 2 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e8e5eb" vertical={false} />
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 10, fill: "#9996a2" }}
+                  tick={{ fontSize: 9, fill: "#99939f" }}
                   tickLine={false}
                   axisLine={false}
-                  interval={5}
+                  interval={Math.max(0, Math.floor(chartData.length / 6) - 1)}
                 />
                 <YAxis
-                  tick={{ fontSize: 10, fill: "#9996a2" }}
+                  tick={{ fontSize: 9, fill: "#99939f" }}
                   tickLine={false}
                   axisLine={false}
                   allowDecimals={false}
                 />
                 <Tooltip
                   contentStyle={{
-                    borderRadius: 10,
-                    border: "1px solid #e3dfeb",
-                    boxShadow: "0 8px 24px rgba(60,35,110,.1)",
-                    fontSize: 11,
+                    borderRadius: 9,
+                    border: "1px solid #ded9e6",
+                    boxShadow: "0 8px 20px rgba(49,31,90,.1)",
+                    fontSize: 10,
                   }}
                   formatter={(value) => [value as number, "Changes"]}
                 />
                 <Line
                   type="monotone"
                   dataKey="count"
-                  stroke="#6945d5"
-                  strokeWidth={2.4}
-                  dot={{ r: 2.5, fill: "#fff", stroke: "#6945d5", strokeWidth: 1.8 }}
-                  activeDot={{ r: 4, fill: "#6945d5" }}
+                  stroke="#6041da"
+                  strokeWidth={2.2}
+                  dot={false}
+                  activeDot={{ r: 4, fill: "#6041da", stroke: "#fff", strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
+
+          <div className="grid border-t border-[#ebe8ee] sm:grid-cols-2 xl:grid-cols-4">
+            {summaryMetrics.map(({ label, value, growth, icon: Icon, style }, index) => (
+              <div
+                key={label}
+                className={`flex min-h-[74px] items-center gap-3 px-4 py-3 ${
+                  index > 0 ? "border-t border-[#ebe8ee] sm:border-l xl:border-t-0" : ""
+                } ${index === 2 ? "sm:border-t xl:border-t-0" : ""}`}
+              >
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${style}`}>
+                  <Icon size={14} />
+                </span>
+                <div>
+                  <p className="text-[9px] font-medium text-[#8d8793]">{label}</p>
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <strong className="text-[17px] leading-none text-[#211b2a]">{value}</strong>
+                    {growth !== null && <Growth value={growth} />}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <aside className="card overflow-hidden">
-          <div className="flex items-center justify-between border-b border-[#ece9f1] px-5 py-4">
-            <div>
-              <h2 className="text-base font-extrabold text-[#1f1a2d]">Priority alerts</h2>
-              <p className="mt-0.5 text-[11px] text-[#9995a2]">Moves worth reviewing now</p>
-            </div>
-            <AlertTriangle size={16} className="text-[#e45d55]" />
+        <aside className="card overflow-hidden !rounded-xl">
+          <div className="flex items-center justify-between border-b border-[#ebe8ee] px-4 py-3.5">
+            <h2 className="font-['Georgia'] text-[17px] font-bold text-[#211b2a]">Priority alerts</h2>
+            <a href="#competitor-activity" className="text-[9px] font-bold text-[#6041c9]">
+              View all
+            </a>
           </div>
           {priorityAlerts.length === 0 ? (
-            <div className="flex min-h-[295px] flex-col items-center justify-center px-6 text-center">
+            <div className="flex h-[344px] flex-col items-center justify-center px-8 text-center">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                <TrendingUp size={18} />
+                <TrendingUp size={17} />
               </span>
-              <p className="mt-3 text-sm font-bold text-[#383243]">No priority alerts</p>
-              <p className="mt-1 text-xs leading-5 text-[#9995a2]">Important competitor moves will appear here.</p>
+              <p className="mt-3 text-xs font-bold text-[#312b37]">No priority alerts</p>
+              <p className="mt-1 text-[10px] leading-4 text-[#98929d]">Important competitor moves will appear here.</p>
             </div>
           ) : (
-            <ul className="divide-y divide-[#f0edf3]">
+            <ul className="divide-y divide-[#efecf1]">
               {priorityAlerts.map((change) => {
-                const high = (change.impact_score ?? 0) >= 7;
+                const score = change.impact_score ?? 0;
+                const severity =
+                  score >= 7
+                    ? { label: "High", icon: "bg-red-50 text-red-500", pill: "bg-red-50 text-red-500" }
+                    : score >= 4
+                      ? { label: "Medium", icon: "bg-amber-50 text-amber-500", pill: "bg-amber-50 text-amber-600" }
+                      : { label: "Low", icon: "bg-emerald-50 text-emerald-600", pill: "bg-emerald-50 text-emerald-600" };
                 return (
                   <li key={change.id}>
                     <Link
                       to={`/changes/${change.id}`}
-                      className="group flex items-start gap-3 px-4 py-3.5 transition hover:bg-[#faf9fc]"
+                      className="group flex min-h-[84px] items-start gap-3 px-4 py-3 transition hover:bg-[#fbfafc]"
                     >
-                      <CompanyLogo
-                        name={change.competitor_name}
-                        logoUrl={change.competitor_logo_url}
-                        color={change.competitor_color}
-                        size={32}
-                        className="rounded-lg shadow-none"
-                      />
+                      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${severity.icon}`}>
+                        {change.category === "messaging_change" ? <FileText size={13} /> : <AlertTriangle size={13} />}
+                      </span>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate text-[11px] font-extrabold text-[#2a2534]">
-                            {change.competitor_name}
-                          </span>
-                          <span
-                            className={`ml-auto rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                              high ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600"
-                            }`}
-                          >
-                            {high ? "High" : "Medium"}
+                        <p className="truncate text-[10px] font-extrabold text-[#332d39]">{change.competitor_name}</p>
+                        <p className="mt-0.5 line-clamp-2 text-[9px] leading-3.5 text-[#79737e]">
+                          {change.summary ?? "Radar is analyzing this movement."}
+                        </p>
+                        <div className="mt-1.5 flex items-center justify-between gap-2">
+                          <span className="text-[8px] text-[#a09aa4]">{formatDateTime(change.detected_at)}</span>
+                          <span className={`rounded-full px-2 py-0.5 text-[8px] font-bold ${severity.pill}`}>
+                            {severity.label}
                           </span>
                         </div>
-                        <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#777180]">
-                          {change.summary ?? "Analysis pending."}
-                        </p>
-                        <p className="mt-1 text-[9px] text-[#aaa5b0]">{formatDateTime(change.detected_at)}</p>
                       </div>
-                      <ChevronRight size={13} className="mt-2 text-[#b9b4c0] transition group-hover:translate-x-0.5" />
+                      <ChevronRight size={12} className="mt-5 text-[#b5afb9] transition group-hover:translate-x-0.5" />
                     </Link>
                   </li>
                 );
@@ -327,130 +345,185 @@ export default function DashboardPage() {
         </aside>
       </section>
 
-      <section className="card overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e9e6ed] px-5 py-4">
-          <div>
-            <h2 className="text-base font-extrabold text-[#1f1a2d]">Competitor activity</h2>
-            <p className="mt-0.5 text-[11px] text-[#9995a2]">A real-time snapshot of monitored companies</p>
+      <section id="competitor-activity" className="card overflow-hidden !rounded-xl">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+          <div className="flex items-baseline gap-2">
+            <h2 className="font-['Georgia'] text-[17px] font-bold text-[#211b2a]">Competitor activity</h2>
+            <span className="hidden text-[9px] text-[#938d98] sm:inline">Snapshot of competitor movement</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="hidden items-center gap-2 rounded-lg border border-[#e3e0e8] bg-white px-3 py-2 text-[10px] text-[#8b8792] sm:flex">
-              <Filter size={12} />
-              Last 30 days
-            </span>
-            <Link
-              to="/competitors"
-              className="inline-flex items-center gap-1 rounded-lg bg-[#f1edff] px-3 py-2 text-[10px] font-bold text-[#5e3ac4]"
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex h-8 w-[170px] items-center gap-2 rounded-lg border border-[#e4e1e7] bg-white px-3 text-[#98929e]">
+              <Search size={12} />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search competitors"
+                className="!w-full !border-0 !bg-transparent !p-0 !text-[9px] !shadow-none !outline-none placeholder:!text-[#aaa5ae] focus:!ring-0"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => setActiveOnly((current) => !current)}
+              className={`inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[9px] font-bold ${
+                activeOnly
+                  ? "border-[#7758d3] bg-[#f1edff] text-[#6041c9]"
+                  : "border-[#e4e1e7] bg-white text-[#77717d]"
+              }`}
             >
-              View all <ArrowRight size={12} />
-            </Link>
+              <Filter size={11} />
+              Filters
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowTopMovement((current) => !current)}
+              className={`inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-[9px] font-bold ${
+                showTopMovement
+                  ? "border-[#e4e1e7] bg-white text-[#77717d]"
+                  : "border-[#7758d3] bg-[#f1edff] text-[#6041c9]"
+              }`}
+            >
+              <Columns3 size={11} />
+              Columns
+            </button>
           </div>
         </div>
 
-        {competitors.length === 0 ? (
-          <div className="px-6 py-12 text-center">
-            <p className="text-sm font-bold text-[#393341]">No competitors yet</p>
-            <Link to="/competitors" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#6541cf]">
-              Add your first competitor <ArrowRight size={12} />
-            </Link>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[850px] border-collapse text-left">
-              <thead>
-                <tr className="border-b border-[#ebe8ef] bg-[#faf9fb] text-[9px] font-bold uppercase tracking-[0.08em] text-[#918b99]">
-                  <th className="px-5 py-3">Competitor</th>
-                  <th className="px-4 py-3">Pages monitored</th>
-                  <th className="px-4 py-3">Changes</th>
-                  <th className="px-4 py-3">High impact</th>
-                  <th className="px-4 py-3">Top movement</th>
-                  <th className="px-4 py-3">Last change</th>
-                  <th className="px-4 py-3">Trend</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#f0edf3]">
-                {competitors.slice(0, 7).map((competitor) => {
-                  const competitorChanges = changes.filter((change) => change.competitor_id === competitor.id);
-                  const activePages = competitor.tracked_urls.filter((trackedUrl) => trackedUrl.is_active).length;
-                  const highImpact = competitorChanges.filter((change) => (change.impact_score ?? 0) >= 7).length;
-                  const categoryCounts = new Map<string, number>();
-                  competitorChanges.forEach((change) => {
-                    const category = change.category ?? "other";
-                    categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
-                  });
-                  const topCategory =
-                    [...categoryCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "other";
-                  const latest = competitorChanges[0];
-                  const trendKeys = stats.timeline.slice(-14).map((point) => point.date.slice(0, 10));
-                  const trendData = trendKeys.map((date) => ({
-                    date,
-                    value: competitorChanges.filter((change) => change.detected_at.slice(0, 10) === date).length,
-                  }));
-
-                  return (
-                    <tr key={competitor.id} className="text-[11px] text-[#5f5968] transition hover:bg-[#fbfaff]">
-                      <td className="px-5 py-3">
-                        <Link
-                          to={`/competitors/${competitor.id}`}
-                          className="flex items-center gap-2.5 font-bold text-[#282331]"
-                        >
-                          <CompanyLogo
-                            name={competitor.name}
-                            logoUrl={competitor.logo_url}
-                            color={competitor.color}
-                            size={28}
-                            className="rounded-md shadow-none"
-                          />
-                          {competitor.name}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="font-extrabold text-[#282331]">{activePages}</span>
-                        <span className="ml-1 text-[#aaa5b0]">active</span>
-                      </td>
-                      <td className="px-4 py-3 font-extrabold text-[#282331]">{competitorChanges.length}</td>
-                      <td className="px-4 py-3">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[900px] border-collapse text-left">
+            <thead>
+              <tr className="border-y border-[#e9e6eb] bg-[#faf9fa] text-[8px] font-bold text-[#6f6974]">
+                <th className="px-4 py-2.5">Competitor</th>
+                <th className="px-3 py-2.5">Activity score</th>
+                <th className="px-3 py-2.5">Change vs. prior {days} days</th>
+                <th className="px-3 py-2.5">High impact</th>
+                {showTopMovement && <th className="px-3 py-2.5">Top movement</th>}
+                <th className="px-3 py-2.5">Last change</th>
+                <th className="px-3 py-2.5">Trend</th>
+                <th className="w-8 px-2 py-2.5" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#efecf0]">
+              {visibleCompetitors.map((competitor) => {
+                const trendData = competitor.trend.map((value, index) => ({ index, value }));
+                return (
+                  <tr key={competitor.competitor_id} className="text-[9px] text-[#5f5964] transition hover:bg-[#fbfafc]">
+                    <td className="px-4 py-2">
+                      <Link
+                        to={`/competitors/${competitor.competitor_id}`}
+                        className="flex items-center gap-2 font-extrabold text-[#2f2935]"
+                      >
+                        <CompanyLogo
+                          name={competitor.competitor_name}
+                          logoUrl={competitor.competitor_logo_url}
+                          color={competitor.competitor_color}
+                          size={25}
+                          className="rounded-md shadow-none"
+                        />
+                        {competitor.competitor_name}
+                      </Link>
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <strong className="text-[10px] text-[#2e2833]">{competitor.activity_score}</strong>
+                        <span className={`rounded-full border px-2 py-0.5 text-[8px] font-bold ${activityPill[competitor.activity_level]}`}>
+                          {competitor.activity_level}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2">
+                      <Growth value={competitor.change_percent} />
+                    </td>
+                    <td className="px-3 py-2">
+                      <span
+                        className={`inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-[8px] font-bold ${
+                          competitor.high_impact > 0 ? "bg-orange-50 text-orange-600" : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {competitor.high_impact}
+                      </span>
+                    </td>
+                    {showTopMovement && (
+                      <td className="px-3 py-2">
                         <span
-                          className={`inline-flex min-w-6 justify-center rounded-full px-2 py-1 text-[9px] font-bold ${
-                            highImpact > 0 ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-500"
+                          className={`rounded-full border px-2 py-0.5 text-[8px] font-bold ${
+                            movementPill[competitor.top_movement] ?? movementPill.other
                           }`}
                         >
-                          {highImpact}
+                          {categoryLabels[competitor.top_movement] ?? "Other"}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
-                        <span className="rounded-full border border-[#ddd3f7] bg-[#f5f1ff] px-2.5 py-1 text-[9px] font-bold text-[#6541c8]">
-                          {categoryLabels[topCategory] ?? "Other"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-[10px] text-[#7e7886]">
-                        {latest ? formatDateTime(latest.detected_at) : "No changes yet"}
-                      </td>
-                      <td className="h-10 w-28 px-4 py-1">
-                        <ResponsiveContainer width="100%" height={30}>
-                          <LineChart data={trendData}>
-                            <Line
-                              type="monotone"
-                              dataKey="value"
-                              stroke="#6d4bd2"
-                              strokeWidth={1.5}
-                              dot={false}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                    )}
+                    <td className="px-3 py-2 text-[#77717c]">
+                      {competitor.last_change ? formatDateTime(competitor.last_change) : "No changes yet"}
+                    </td>
+                    <td className="h-9 w-32 px-3 py-1">
+                      <ResponsiveContainer width="100%" height={25}>
+                        <LineChart data={trendData}>
+                          <Line type="monotone" dataKey="value" stroke="#6746d7" strokeWidth={1.4} dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </td>
+                    <td className="px-2 py-2">
+                      <Link
+                        to={`/competitors/${competitor.competitor_id}`}
+                        className="flex h-6 w-6 items-center justify-center rounded-md text-[#8f8994] hover:bg-[#f0edf3]"
+                        aria-label={`Open ${competitor.competitor_name}`}
+                      >
+                        <MoreVertical size={12} />
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-[#ebe8ec] px-4 py-2.5 text-[8px] text-[#8e8893]">
+          <span>
+            {filteredCompetitors.length === 0
+              ? "0 competitors"
+              : `${(safePage - 1) * pageSize + 1}–${Math.min(safePage * pageSize, filteredCompetitors.length)} of ${filteredCompetitors.length} competitors`}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={safePage === 1}
+              className="flex h-6 w-6 items-center justify-center rounded-md border border-[#e4e0e7] disabled:opacity-35"
+            >
+              <ChevronLeft size={10} />
+            </button>
+            {Array.from({ length: pageCount }, (_, index) => index + 1)
+              .slice(0, 4)
+              .map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  onClick={() => setPage(pageNumber)}
+                  className={`h-6 min-w-6 rounded-md px-1.5 font-bold ${
+                    safePage === pageNumber ? "bg-[#2f255e] text-white" : "border border-[#e4e0e7] text-[#77717d]"
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              ))}
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
+              disabled={safePage === pageCount}
+              className="flex h-6 w-6 items-center justify-center rounded-md border border-[#e4e0e7] disabled:opacity-35"
+            >
+              <ChevronRight size={10} />
+            </button>
           </div>
-        )}
+        </div>
       </section>
 
-      <div className="flex items-center justify-center gap-2 pb-1 text-[10px] text-[#a09aa7]">
-        <FileText size={12} />
-        Intelligence updates automatically as Radar scans your tracked pages.
+      <div className="flex justify-end pb-1">
+        <Link to="/brief" className="inline-flex items-center gap-1 text-[9px] font-bold text-[#6041c9]">
+          Open full intelligence brief <ArrowRight size={11} />
+        </Link>
       </div>
     </div>
   );
