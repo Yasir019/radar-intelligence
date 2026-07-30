@@ -1,5 +1,6 @@
 import {
   Building2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   FileText,
@@ -107,7 +108,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-30 flex h-[70px] items-center justify-between border-b border-[#ece9f1] bg-white/95 px-4 backdrop-blur-xl sm:px-7 lg:px-8">
+        <header className="sticky top-0 z-30 flex h-[70px] items-center justify-between border-b border-[#e7e3ea] bg-white/95 px-4 backdrop-blur-xl sm:px-7 lg:px-8">
           <div className="flex items-center gap-2.5 lg:hidden">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#7457ea] text-white">
               <Radar size={17} />
@@ -115,31 +116,35 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="font-extrabold tracking-tight text-[#171527]">Radar.</span>
           </div>
 
-          <label className="hidden w-full max-w-[360px] items-center gap-2.5 text-[#91a0b4] sm:flex">
-            <Search size={16} />
+          <label className="hidden h-10 w-full max-w-[430px] items-center gap-2.5 rounded-lg border border-[#ddd9e1] bg-white px-3 text-[#7f7885] shadow-[0_1px_3px_rgba(35,24,48,0.03)] transition focus-within:border-[#9d87d8] focus-within:ring-2 focus-within:ring-[#ede8fa] sm:flex">
+            <Search size={15} />
             <input
               aria-label="Search"
               placeholder="Search intelligence"
-              className="w-full border-0 bg-transparent p-0 text-sm text-[#34435a] outline-none placeholder:text-[#a4b0c0] focus:ring-0"
+              className="min-w-0 flex-1 border-0 bg-transparent p-0 text-[12px] text-[#3b3542] outline-none placeholder:text-[#9e98a3] focus:ring-0"
             />
+            <span className="inline-flex h-6 items-center gap-1 rounded-md border border-[#e5e1e8] bg-[#faf9fb] px-2 text-[9px] font-bold text-[#8a8490]">
+              ⌘ K
+            </span>
           </label>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 sm:gap-5">
             <NotificationBell />
-            <div className="h-7 w-px bg-[#dbe6f3]" />
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#171527] text-[10px] font-bold text-white">
+            <div className="h-8 w-px bg-[#e4e0e7]" />
+            <button type="button" className="flex items-center gap-2.5 rounded-lg py-1 text-left">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#17142d] text-[10px] font-bold text-white">
                 {initials}
               </span>
               <div className="hidden leading-tight sm:block">
-                <div className="max-w-36 truncate text-xs font-bold text-[#24324a]">
+                <div className="max-w-36 truncate text-[11px] font-extrabold text-[#282231]">
                   {user?.email?.split("@")[0]}
                 </div>
-                <div className="text-[10px] text-[#96a3b4]">
+                <div className="mt-0.5 text-[9px] text-[#8f8995]">
                   {user?.demo_mode ? "Demo workspace" : "Radar workspace"}
                 </div>
               </div>
-            </div>
+              <ChevronDown size={13} className="ml-2 hidden text-[#837d88] sm:block" />
+            </button>
           </div>
         </header>
 
