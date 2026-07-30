@@ -1,37 +1,88 @@
-import { Globe, Pencil, Trash2 } from "lucide-react";
+import { Area, AreaChart, ResponsiveContainer } from "recharts";
+import { FileText, Globe2, MoreHorizontal, Pencil } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { Competitor } from "../api/types";
+import type { ChangeEvent, Competitor } from "../api/types";
 import { CompanyLogo } from "./CompanyLogo";
+
+function relativeTime(value: string | undefined): string {
+  if (!value) return "No changes";
+  const normalized = /z$|[+-]\d\d:\d\d$/i.test(value) ? value : `${value}Z`;
+  const hours = Math.max(0, Math.floor((Date.now() - new Date(normalized).getTime()) / 3_600_000));
+  if (hours < 1) return "Just now";
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return days === 1 ? "Yesterday" : `${days}d ago`;
+}
 
 export function CompetitorCard({
   competitor,
-  changeCount,
+  changes,
+  view,
   onEdit,
   onDelete,
 }: {
   competitor: Competitor;
-  changeCount: number;
+  changes: ChangeEvent[];
+  view: "grid" | "list";
   onEdit: (competitor: Competitor) => void;
   onDelete: (competitor: Competitor) => void;
 }) {
-  const activeUrls = competitor.tracked_urls.filter((u) => u.is_active).length;
-  return (
-    <div className="card card-hover p-5">
-      <div className="flex items-start justify-between">
-        <Link to={`/competitors/${competitor.id}`} aria-label={`Open ${competitor.name}`}>
+  const activeUrls = competitor.tracked_urls.filter((url) => url.is_active).length;
+  const isActive = activeUrls > 0;
+  const recentChanges = changes.filter((change) => {
+    const normalized = /z$|[+-]\d\d:\d\d$/i.test(change.detected_at)
+      ? change.detected_at
+      : `${change.detected_at}Z`;
+    return new Date(normalized).getTime() >= Date.now() - 30 * 24 * 60 * 60 * 1000;
+  });
+  const lastChange = recentChanges[0]?.detected_at;
+  const trend = Array.from({ length: 30 }, (_, index) => {
+    const date = new Date();
+    date.setUTCDate(date.getUTCDate() - (29 - index));
+    const key = date.toISOString().slice(0, 10);
+    return {
+      day: index,
+      value: recentChanges.filter((change) => change.detected_at.slice(0, 10) === key).length,
+    };
+  });
+  const chartColor = competitor.color || "#7457ea";
+
+  if (view === "list") {
+    return (
+      <div className="card flex flex-wrap items-center gap-4 px-5 py-4 !rounded-xl">
+        <Link to={`/competitors/${competitor.id}`} className="flex min-w-[240px] flex-1 items-center gap-3">
           <CompanyLogo
             name={competitor.name}
             logoUrl={competitor.logo_url}
             color={competitor.color}
-            size={40}
+            size={42}
+            className="rounded-lg"
           />
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-extrabold text-[#292334]">{competitor.name}</h3>
+            <p className="mt-1 flex items-center gap-1 truncate text-[10px] text-[#8f8995]">
+              <Globe2 size={10} />
+              {competitor.website.replace(/^https?:\/\//, "")}
+            </p>
+          </div>
         </Link>
+        <span
+          className={`rounded-full px-2.5 py-1 text-[9px] font-bold ${
+            isActive ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+          }`}
+        >
+          {isActive ? "● Active" : "● Setup needed"}
+        </span>
+        <div className="grid min-w-[320px] flex-1 grid-cols-3 gap-5 text-[10px]">
+          <span><strong className="block text-sm text-[#2b2533]">{activeUrls}</strong>tracked pages</span>
+          <span><strong className="block text-sm text-[#2b2533]">{recentChanges.length}</strong>changes (30d)</span>
+          <span><strong className="block text-sm text-[#2b2533]">{relativeTime(lastChange)}</strong>last change</span>
+        </div>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => onEdit(competitor)}
-            className="rounded-lg p-2 text-gray-400 transition hover:bg-indigo-50 hover:text-indigo-600"
-            title={`Edit ${competitor.name}`}
+            className="rounded-lg p-2 text-[#77717e] hover:bg-violet-50 hover:text-violet-600"
             aria-label={`Edit ${competitor.name}`}
           >
             <Pencil size={14} />
@@ -39,29 +90,118 @@ export function CompetitorCard({
           <button
             type="button"
             onClick={() => onDelete(competitor)}
-            className="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-            title={`Delete ${competitor.name}`}
+            className="rounded-lg p-2 text-[#77717e] hover:bg-red-50 hover:text-red-600"
             aria-label={`Delete ${competitor.name}`}
           >
-            <Trash2 size={14} />
+            <MoreHorizontal size={16} />
           </button>
         </div>
       </div>
-      <Link to={`/competitors/${competitor.id}`} className="block">
-        <h4 className="mt-3 text-sm font-semibold text-gray-900">{competitor.name}</h4>
-        <div className="mt-0.5 flex items-center gap-1 text-xs text-gray-400">
-          <Globe size={12} />
-          <span className="truncate">{competitor.website.replace(/^https?:\/\//, "")}</span>
-        </div>
-        <div className="mt-4 flex items-center gap-4 border-t border-gray-50 pt-3 text-xs">
-          <span className="text-gray-500">
-            <span className="font-semibold text-gray-900">{activeUrls}</span> tracked pages
+    );
+  }
+
+  return (
+    <article className="card flex min-h-[292px] flex-col overflow-hidden !rounded-xl">
+      <div className="flex items-start gap-3 px-4 pb-2 pt-4">
+        <Link to={`/competitors/${competitor.id}`}>
+          <CompanyLogo
+            name={competitor.name}
+            logoUrl={competitor.logo_url}
+            color={competitor.color}
+            size={42}
+            className="rounded-lg"
+          />
+        </Link>
+        <Link to={`/competitors/${competitor.id}`} className="min-w-0 flex-1">
+          <h3 className="truncate text-[12px] font-extrabold text-[#292334]">{competitor.name}</h3>
+          <p className="mt-1 flex items-center gap-1 truncate text-[9px] text-[#8f8995]">
+            <Globe2 size={9} />
+            {competitor.website.replace(/^https?:\/\//, "")}
+          </p>
+        </Link>
+        <span
+          className={`mt-1 shrink-0 rounded-full px-2.5 py-1 text-[8px] font-bold ${
+            isActive ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+          }`}
+        >
+          {isActive ? "● Active" : "● Setup needed"}
+        </span>
+        <button
+          type="button"
+          onClick={() => onEdit(competitor)}
+          className="rounded-md p-1.5 text-[#77717e] hover:bg-violet-50 hover:text-violet-600"
+          aria-label={`Edit ${competitor.name}`}
+        >
+          <Pencil size={13} />
+        </button>
+        <button
+          type="button"
+          onClick={() => onDelete(competitor)}
+          className="rounded-md p-1 text-[#77717e] hover:bg-red-50 hover:text-red-600"
+          aria-label={`Delete ${competitor.name}`}
+        >
+          <MoreHorizontal size={16} />
+        </button>
+      </div>
+
+      {isActive ? (
+        <>
+          <div className="h-[92px] px-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trend}>
+                <defs>
+                  <linearGradient id={`trend-${competitor.id}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={chartColor} stopOpacity={0.18} />
+                    <stop offset="100%" stopColor={chartColor} stopOpacity={0.01} />
+                  </linearGradient>
+                </defs>
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke={chartColor}
+                  strokeWidth={1.4}
+                  fill={`url(#trend-${competitor.id})`}
+                  dot={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mx-4 grid grid-cols-3 border-y border-[#ece9ef] py-3 text-center text-[9px] text-[#8b8590]">
+            <div>
+              <strong className="block text-[12px] text-[#2e2835]">{activeUrls}</strong>
+              tracked pages
+            </div>
+            <div className="border-x border-[#ece9ef]">
+              <strong className="block text-[12px] text-[#2e2835]">{recentChanges.length}</strong>
+              changes (30d)
+            </div>
+            <div>
+              <strong className="block text-[11px] text-[#2e2835]">{relativeTime(lastChange)}</strong>
+              last change
+            </div>
+          </div>
+          <Link
+            to={`/competitors/${competitor.id}`}
+            className="mx-4 mt-auto inline-flex items-center gap-2 py-3 text-[10px] font-bold text-[#6541cf]"
+          >
+            View intelligence <span>→</span>
+          </Link>
+        </>
+      ) : (
+        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-4 text-center">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#ddd9e1] bg-[#faf9fb] text-[#78717f]">
+            <FileText size={14} />
           </span>
-          <span className="text-gray-500">
-            <span className="font-semibold text-gray-900">{changeCount}</span> changes (30d)
-          </span>
+          <p className="mt-3 text-[10px] font-medium text-[#6f6975]">No pages are being tracked yet</p>
+          <p className="mt-1 text-[9px] text-[#9b95a0]">Add pages to start monitoring changes.</p>
+          <Link
+            to={`/competitors/${competitor.id}`}
+            className="mt-4 rounded-lg border border-[#bcaaf0] px-5 py-2 text-[10px] font-bold text-[#6541cf] hover:bg-[#f7f4ff]"
+          >
+            Add pages
+          </Link>
         </div>
-      </Link>
-    </div>
+      )}
+    </article>
   );
 }
