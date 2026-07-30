@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { ChangeEvent, CheckRunResult, Competitor, PageType } from "../api/types";
 import { ChangeTimeline } from "../components/ChangeTimeline";
+import { CompanyLogo } from "../components/CompanyLogo";
 import { BattlecardCard, PredictionCard } from "../components/CompetitorAI";
 import { inputClass, Modal, primaryBtn } from "../components/Modal";
 import { UrlTable } from "../components/UrlTable";
@@ -78,12 +79,12 @@ export default function CompetitorDetailPage() {
       <div className="card p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-4">
-            <span
-              className="flex h-12 w-12 items-center justify-center rounded-xl text-base font-bold text-white"
-              style={{ backgroundColor: competitor.color }}
-            >
-              {competitor.name.slice(0, 2).toUpperCase()}
-            </span>
+            <CompanyLogo
+              name={competitor.name}
+              logoUrl={competitor.logo_url}
+              color={competitor.color}
+              size={48}
+            />
             <div>
               <h1 className="text-lg font-semibold text-gray-900">{competitor.name}</h1>
               <a

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
 from app.database import get_db
+from app.logo import company_logo_url
 from app.models import Competitor, User, WarRoom
 from app.schemas import WarRoomOut, WarRoomTurn
 from app.services import war_room as war_room_service
@@ -19,6 +20,7 @@ def _to_out(wr: WarRoom) -> WarRoomOut:
         competitor_id=wr.competitor_id,
         competitor_name=wr.competitor.name,
         competitor_color=wr.competitor.color,
+        competitor_logo_url=company_logo_url(wr.competitor.website),
         rounds=wr.rounds,
         transcript=[WarRoomTurn(**t) for t in json.loads(wr.transcript_json)],
         created_at=wr.created_at,

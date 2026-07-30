@@ -29,6 +29,7 @@ export interface Competitor {
   website: string;
   notes: string | null;
   color: string;
+  logo_url: string | null;
   created_at: string;
   tracked_urls: TrackedUrl[];
 }
@@ -45,6 +46,7 @@ export interface ChangeEvent {
   competitor_id: number | null;
   competitor_name: string | null;
   competitor_color: string | null;
+  competitor_logo_url: string | null;
   url: string | null;
   page_type: PageType | null;
 }

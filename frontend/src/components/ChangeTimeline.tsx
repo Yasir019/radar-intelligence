@@ -2,6 +2,7 @@ import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { ChangeEvent } from "../api/types";
 import { CategoryPill } from "./CategoryPill";
+import { CompanyLogo } from "./CompanyLogo";
 import { ImpactBadge } from "./ImpactBadge";
 
 function formatDate(iso: string): string {
@@ -31,12 +32,13 @@ export function ChangeTimeline({ changes, title = "Recent changes" }: { changes:
               to={`/changes/${c.id}`}
               className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-[#f6faff]"
             >
-              <span
-                className="h-9 w-9 shrink-0 rounded-lg flex items-center justify-center text-xs font-bold text-white"
-                style={{ backgroundColor: c.competitor_color ?? "#7457ea" }}
-              >
-                {(c.competitor_name ?? "?").slice(0, 2).toUpperCase()}
-              </span>
+              <CompanyLogo
+                name={c.competitor_name}
+                logoUrl={c.competitor_logo_url}
+                color={c.competitor_color}
+                size={36}
+                className="rounded-lg"
+              />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-medium text-gray-900">{c.competitor_name}</span>

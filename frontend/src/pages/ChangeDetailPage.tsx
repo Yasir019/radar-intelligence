@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import type { ChangeEvent, DiffResponse } from "../api/types";
 import { CategoryPill } from "../components/CategoryPill";
+import { CompanyLogo } from "../components/CompanyLogo";
 import { DiffViewer } from "../components/DiffViewer";
 import { ImpactBadge } from "../components/ImpactBadge";
 
@@ -32,12 +33,13 @@ export default function ChangeDetailPage() {
 
       <div className="card p-6">
         <div className="flex flex-wrap items-center gap-2">
-          <span
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-xs font-bold text-white"
-            style={{ backgroundColor: change.competitor_color ?? "#7457ea" }}
-          >
-            {(change.competitor_name ?? "?").slice(0, 2).toUpperCase()}
-          </span>
+          <CompanyLogo
+            name={change.competitor_name}
+            logoUrl={change.competitor_logo_url}
+            color={change.competitor_color}
+            size={36}
+            className="rounded-lg"
+          />
           <h1 className="text-lg font-semibold text-gray-900">{change.competitor_name}</h1>
           <CategoryPill category={change.category} />
           <ImpactBadge score={change.impact_score} />

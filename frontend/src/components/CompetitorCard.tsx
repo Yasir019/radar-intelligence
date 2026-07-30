@@ -1,6 +1,7 @@
 import { ExternalLink, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Competitor } from "../api/types";
+import { CompanyLogo } from "./CompanyLogo";
 
 export function CompetitorCard({
   competitor,
@@ -13,12 +14,12 @@ export function CompetitorCard({
   return (
     <Link to={`/competitors/${competitor.id}`} className="card card-hover block p-5">
       <div className="flex items-start justify-between">
-        <span
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold text-white"
-          style={{ backgroundColor: competitor.color }}
-        >
-          {competitor.name.slice(0, 2).toUpperCase()}
-        </span>
+        <CompanyLogo
+          name={competitor.name}
+          logoUrl={competitor.logo_url}
+          color={competitor.color}
+          size={40}
+        />
         <ExternalLink size={15} className="text-gray-300" />
       </div>
       <h4 className="mt-3 text-sm font-semibold text-gray-900">{competitor.name}</h4>

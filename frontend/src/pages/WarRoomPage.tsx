@@ -2,6 +2,7 @@ import { Gavel, Loader2, Shield, Swords } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { api, getToken } from "../api/client";
 import type { Competitor } from "../api/types";
+import { CompanyLogo } from "../components/CompanyLogo";
 import { primaryBtn } from "../components/Modal";
 
 interface WarRoomTurn {
@@ -15,6 +16,7 @@ interface WarRoomSession {
   competitor_id: number;
   competitor_name: string;
   competitor_color: string;
+  competitor_logo_url: string | null;
   rounds: number;
   transcript: WarRoomTurn[];
   created_at: string;
@@ -52,7 +54,19 @@ function TypewriterText({ text, animate, onDone }: { text: string; animate: bool
   );
 }
 
-function TurnBubble({ turn, color, animate }: { turn: WarRoomTurn; color: string; animate: boolean }) {
+function TurnBubble({
+  turn,
+  color,
+  animate,
+  competitorName,
+  competitorLogoUrl,
+}: {
+  turn: WarRoomTurn;
+  color: string;
+  animate: boolean;
+  competitorName: string;
+  competitorLogoUrl: string | null;
+}) {
   if (turn.role === "verdict") {
     return (
       <div className="mx-auto max-w-2xl rounded-xl border border-amber-200 bg-amber-50 p-5">
@@ -74,12 +88,19 @@ function TurnBubble({ turn, color, animate }: { turn: WarRoomTurn; color: string
     <div className={`flex ${isAttacker ? "justify-start" : "justify-end"}`}>
       <div className={`max-w-[80%] ${isAttacker ? "" : "text-right"}`}>
         <div className={`mb-1 flex items-center gap-2 ${isAttacker ? "" : "justify-end"}`}>
-          <span
-            className="flex h-6 w-6 items-center justify-center rounded-md text-white"
-            style={{ backgroundColor: isAttacker ? color : "#7457ea" }}
-          >
-            {isAttacker ? <Swords size={12} /> : <Shield size={12} />}
-          </span>
+          {isAttacker ? (
+            <CompanyLogo
+              name={competitorName}
+              logoUrl={competitorLogoUrl}
+              color={color}
+              size={24}
+              className="rounded-md shadow-none"
+            />
+          ) : (
+            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#7457ea] text-white">
+              <Shield size={12} />
+            </span>
+          )}
           <span className="text-xs font-semibold text-gray-600">{turn.speaker}</span>
         </div>
         <div
@@ -96,16 +117,35 @@ function TurnBubble({ turn, color, animate }: { turn: WarRoomTurn; color: string
   );
 }
 
-function ThinkingIndicator({ speaker, isAttacker, color }: { speaker: string; isAttacker: boolean; color: string }) {
+function ThinkingIndicator({
+  speaker,
+  isAttacker,
+  color,
+  competitorName,
+  competitorLogoUrl,
+}: {
+  speaker: string;
+  isAttacker: boolean;
+  color: string;
+  competitorName: string;
+  competitorLogoUrl: string | null;
+}) {
   return (
     <div className={`flex ${isAttacker ? "justify-start" : "justify-end"}`}>
       <div className={`flex items-center gap-2 ${isAttacker ? "" : "flex-row-reverse"}`}>
-        <span
-          className="flex h-6 w-6 items-center justify-center rounded-md text-white"
-          style={{ backgroundColor: isAttacker ? color : "#7457ea" }}
-        >
-          {isAttacker ? <Swords size={12} /> : <Shield size={12} />}
-        </span>
+        {isAttacker ? (
+          <CompanyLogo
+            name={competitorName}
+            logoUrl={competitorLogoUrl}
+            color={color}
+            size={24}
+            className="rounded-md shadow-none"
+          />
+        ) : (
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#7457ea] text-white">
+            <Shield size={12} />
+          </span>
+        )}
         <div
           className={`flex items-center gap-1.5 rounded-xl border px-4 py-3 ${
             isAttacker ? "border-red-100 bg-red-50/70" : "border-indigo-100 bg-indigo-50/70"
@@ -265,12 +305,13 @@ export default function WarRoomPage() {
                     activeSessionId === h.id ? "bg-indigo-50/60" : ""
                   }`}
                 >
-                  <span
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-bold text-white"
-                    style={{ backgroundColor: h.competitor_color }}
-                  >
-                    {h.competitor_name.slice(0, 2).toUpperCase()}
-                  </span>
+                  <CompanyLogo
+                    name={h.competitor_name}
+                    logoUrl={h.competitor_logo_url}
+                    color={h.competitor_color}
+                    size={24}
+                    className="rounded-md shadow-none"
+                  />
                   <div>
                     <div className="text-[13px] font-medium text-gray-700">vs {h.competitor_name}</div>
                     <div className="text-[11px] text-gray-400">
@@ -309,6 +350,8 @@ export default function WarRoomPage() {
                   turn={turn}
                   color={bubbleColor}
                   animate={animateLast && i === turns.length - 1}
+                  competitorName={selected?.name ?? "Competitor"}
+                  competitorLogoUrl={selected?.logo_url ?? null}
                 />
               ))}
               {showThinking && (
@@ -322,6 +365,8 @@ export default function WarRoomPage() {
                   }
                   isAttacker={nextSpeakerIsAttacker && turns.length < rounds * 2}
                   color={bubbleColor}
+                  competitorName={selected?.name ?? "Competitor"}
+                  competitorLogoUrl={selected?.logo_url ?? null}
                 />
               )}
               <div ref={bottomRef} />

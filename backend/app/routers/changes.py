@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
 from app.database import get_db
+from app.logo import company_logo_url
 from app.models import ChangeEvent, Competitor, TrackedUrl, User
 from app.schemas import ChangeEventOut, DiffResponse
 from app.services.differ import structured_diff
@@ -18,6 +19,7 @@ def enrich_change_event(event: ChangeEvent) -> ChangeEventOut:
     out.competitor_id = tracked.competitor.id
     out.competitor_name = tracked.competitor.name
     out.competitor_color = tracked.competitor.color
+    out.competitor_logo_url = company_logo_url(tracked.competitor.website)
     return out
 
 

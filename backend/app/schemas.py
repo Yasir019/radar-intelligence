@@ -2,7 +2,9 @@ import re
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, computed_field, field_validator
+
+from app.logo import company_logo_url
 
 PageType = Literal["pricing", "changelog", "blog", "features", "other"]
 ChangeCategory = Literal["pricing_change", "new_feature", "messaging_change", "promotion", "other"]
@@ -97,6 +99,11 @@ class CompetitorOut(BaseModel):
     created_at: datetime
     tracked_urls: list[TrackedUrlOut] = []
 
+    @computed_field
+    @property
+    def logo_url(self) -> str | None:
+        return company_logo_url(self.website)
+
 
 # ---------- Changes / AI ----------
 
@@ -124,6 +131,7 @@ class ChangeEventOut(BaseModel):
     competitor_id: int | None = None
     competitor_name: str | None = None
     competitor_color: str | None = None
+    competitor_logo_url: str | None = None
     url: str | None = None
     page_type: str | None = None
 
@@ -231,6 +239,7 @@ class WarRoomOut(BaseModel):
     competitor_id: int
     competitor_name: str
     competitor_color: str
+    competitor_logo_url: str | None = None
     rounds: int
     transcript: list[WarRoomTurn]
     created_at: datetime
