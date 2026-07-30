@@ -1,4 +1,7 @@
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
+
+
+_PLACEHOLDER_DOMAINS = ("example.com", "example.org", "example.net")
 
 
 def company_logo_url(website: str | None) -> str | None:
@@ -17,8 +20,16 @@ def company_logo_url(website: str | None) -> str | None:
     if not hostname:
         return None
 
-    # Use the site's real icon rather than a logo service that may return a
-    # generic globe for unknown domains. A missing icon produces an image error,
-    # and CompanyLogo then keeps the original initials badge.
-    scheme = parsed.scheme if parsed.scheme in {"http", "https"} else "https"
-    return f"{scheme}://{hostname}/favicon.ico"
+    # Demo/placeholder hosts have no real brand identity. Returning no image
+    # keeps the original initials badge instead of showing a generic globe.
+    if (
+        hostname == "localhost"
+        or hostname.endswith(".invalid")
+        or any(hostname == domain or hostname.endswith(f".{domain}") for domain in _PLACEHOLDER_DOMAINS)
+    ):
+        return None
+
+    # Real companies often declare their icon somewhere other than
+    # /favicon.ico. Google's favicon endpoint discovers those declarations and
+    # returns a consistently sized image for the dashboard.
+    return f"https://www.google.com/s2/favicons?domain={quote(hostname)}&sz=128"
