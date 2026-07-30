@@ -59,24 +59,24 @@ export function CompetitorCard({
             className="rounded-lg"
           />
           <div className="min-w-0">
-            <h3 className="truncate text-sm font-extrabold text-[#292334]">{competitor.name}</h3>
-            <p className="mt-1 flex items-center gap-1 truncate text-[10px] text-[#8f8995]">
+          <h3 className="truncate text-[15px] font-extrabold text-[#292334]">{competitor.name}</h3>
+            <p className="mt-1 flex items-center gap-1 truncate text-[11px] text-[#77717d]">
               <Globe2 size={10} />
               {competitor.website.replace(/^https?:\/\//, "")}
             </p>
           </div>
         </Link>
         <span
-          className={`rounded-full px-2.5 py-1 text-[9px] font-bold ${
+          className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${
             isActive ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
           }`}
         >
           {isActive ? "● Active" : "● Setup needed"}
         </span>
-        <div className="grid min-w-[320px] flex-1 grid-cols-3 gap-5 text-[10px]">
-          <span><strong className="block text-sm text-[#2b2533]">{activeUrls}</strong>tracked pages</span>
-          <span><strong className="block text-sm text-[#2b2533]">{recentChanges.length}</strong>changes (30d)</span>
-          <span><strong className="block text-sm text-[#2b2533]">{relativeTime(lastChange)}</strong>last change</span>
+        <div className="grid min-w-[320px] flex-1 grid-cols-3 gap-5 text-[11px] text-[#706a77]">
+          <span><strong className="block text-[15px] text-[#2b2533]">{activeUrls}</strong>tracked pages</span>
+          <span><strong className="block text-[15px] text-[#2b2533]">{recentChanges.length}</strong>changes (30d)</span>
+          <span><strong className="block text-[15px] text-[#2b2533]">{relativeTime(lastChange)}</strong>last change</span>
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -101,26 +101,26 @@ export function CompetitorCard({
   }
 
   return (
-    <article className="card flex min-h-[292px] flex-col overflow-hidden !rounded-xl">
-      <div className="flex items-start gap-3 px-4 pb-2 pt-4">
+    <article className="card flex min-h-[340px] flex-col overflow-hidden !rounded-xl">
+      <div className="flex items-start gap-3 px-5 pb-3 pt-5">
         <Link to={`/competitors/${competitor.id}`}>
           <CompanyLogo
             name={competitor.name}
             logoUrl={competitor.logo_url}
             color={competitor.color}
-            size={42}
+            size={46}
             className="rounded-lg"
           />
         </Link>
         <Link to={`/competitors/${competitor.id}`} className="min-w-0 flex-1">
-          <h3 className="truncate text-[12px] font-extrabold text-[#292334]">{competitor.name}</h3>
-          <p className="mt-1 flex items-center gap-1 truncate text-[9px] text-[#8f8995]">
-            <Globe2 size={9} />
+          <h3 className="truncate text-[14px] font-extrabold text-[#292334]">{competitor.name}</h3>
+          <p className="mt-1.5 flex items-center gap-1 truncate text-[11px] text-[#77717d]">
+            <Globe2 size={11} />
             {competitor.website.replace(/^https?:\/\//, "")}
           </p>
         </Link>
         <span
-          className={`mt-1 shrink-0 rounded-full px-2.5 py-1 text-[8px] font-bold ${
+          className={`mt-1 shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${
             isActive ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
           }`}
         >
@@ -146,7 +146,7 @@ export function CompetitorCard({
 
       {isActive ? (
         <>
-          <div className="h-[92px] px-4">
+          <div className="h-[108px] px-5">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trend}>
                 <defs>
@@ -166,23 +166,23 @@ export function CompetitorCard({
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <div className="mx-4 grid grid-cols-3 border-y border-[#ece9ef] py-3 text-center text-[9px] text-[#8b8590]">
+          <div className="mx-5 grid grid-cols-3 border-y border-[#e5e1e9] py-3.5 text-center text-[10px] font-medium text-[#716b77]">
             <div>
-              <strong className="block text-[12px] text-[#2e2835]">{activeUrls}</strong>
+              <strong className="mb-0.5 block text-[14px] text-[#2e2835]">{activeUrls}</strong>
               tracked pages
             </div>
             <div className="border-x border-[#ece9ef]">
-              <strong className="block text-[12px] text-[#2e2835]">{recentChanges.length}</strong>
+              <strong className="mb-0.5 block text-[14px] text-[#2e2835]">{recentChanges.length}</strong>
               changes (30d)
             </div>
             <div>
-              <strong className="block text-[11px] text-[#2e2835]">{relativeTime(lastChange)}</strong>
+              <strong className="mb-0.5 block text-[13px] text-[#2e2835]">{relativeTime(lastChange)}</strong>
               last change
             </div>
           </div>
           <Link
             to={`/competitors/${competitor.id}`}
-            className="mx-4 mt-auto inline-flex items-center gap-2 py-3 text-[10px] font-bold text-[#6541cf]"
+            className="mx-5 mt-auto inline-flex items-center gap-2 py-4 text-[12px] font-bold text-[#6541cf]"
           >
             View intelligence <span>→</span>
           </Link>
@@ -192,11 +192,11 @@ export function CompetitorCard({
           <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#ddd9e1] bg-[#faf9fb] text-[#78717f]">
             <FileText size={14} />
           </span>
-          <p className="mt-3 text-[10px] font-medium text-[#6f6975]">No pages are being tracked yet</p>
-          <p className="mt-1 text-[9px] text-[#9b95a0]">Add pages to start monitoring changes.</p>
+          <p className="mt-3 text-[12px] font-semibold text-[#5f5967]">No pages are being tracked yet</p>
+          <p className="mt-1.5 text-[10px] text-[#8e8894]">Add pages to start monitoring changes.</p>
           <Link
             to={`/competitors/${competitor.id}`}
-            className="mt-4 rounded-lg border border-[#bcaaf0] px-5 py-2 text-[10px] font-bold text-[#6541cf] hover:bg-[#f7f4ff]"
+            className="mt-5 rounded-lg border border-[#bcaaf0] px-6 py-2.5 text-[11px] font-bold text-[#6541cf] hover:bg-[#f7f4ff]"
           >
             Add pages
           </Link>

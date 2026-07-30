@@ -121,8 +121,8 @@ export default function CompetitorsPage() {
     <div className="mx-auto max-w-[1450px] space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="!font-['Georgia'] !text-[40px] !font-bold !tracking-[-0.035em]">Competitors</h1>
-          <p className="mt-1 text-sm text-[#737080]">
+          <h1 className="!font-['Georgia'] !text-[44px] !font-bold !tracking-[-0.035em]">Competitors</h1>
+          <p className="mt-1 text-[15px] text-[#625d6b]">
             Track companies, monitor key pages, and spot meaningful movement.
           </p>
         </div>
@@ -153,13 +153,13 @@ export default function CompetitorsPage() {
             style: "bg-[#eee9ff] text-[#4c2db8]",
           },
         ].map(({ icon: Icon, value, label, style }) => (
-          <div key={label} className="card flex min-h-[98px] items-center gap-4 px-5 py-4 !rounded-xl">
-            <span className={`flex h-10 w-10 items-center justify-center rounded-full ${style}`}>
-              <Icon size={17} />
+          <div key={label} className="card flex min-h-[112px] items-center gap-4 px-6 py-5 !rounded-xl">
+            <span className={`flex h-11 w-11 items-center justify-center rounded-full ${style}`}>
+              <Icon size={19} />
             </span>
             <div>
-              <strong className="block text-[20px] leading-none text-[#241f2d]">{value}</strong>
-              <span className="mt-2 block text-[10px] text-[#7f7986]">{label}</span>
+              <strong className="block text-[25px] leading-none text-[#241f2d]">{value}</strong>
+              <span className="mt-2 block text-[12px] font-medium text-[#706a78]">{label}</span>
             </div>
           </div>
         ))}
@@ -173,14 +173,14 @@ export default function CompetitorsPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search competitors..."
-              className="!w-full !border-0 !bg-transparent !p-0 !text-[11px] !shadow-none !outline-none placeholder:!text-[#a49ea8] focus:!ring-0"
+            className="!w-full !border-0 !bg-transparent !p-0 !text-[12px] !shadow-none !outline-none placeholder:!text-[#99939e] focus:!ring-0"
             />
           </label>
           <div className="flex h-10 rounded-lg border border-[#ded9e4] bg-white p-1">
             <button
               type="button"
               onClick={() => setView("grid")}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 text-[10px] font-bold ${
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 text-[11px] font-bold ${
                 view === "grid" ? "bg-[#eee9ff] text-[#4f31b7]" : "text-[#7e7884]"
               }`}
             >
@@ -189,7 +189,7 @@ export default function CompetitorsPage() {
             <button
               type="button"
               onClick={() => setView("list")}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 text-[10px] font-bold ${
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 text-[11px] font-bold ${
                 view === "list" ? "bg-[#eee9ff] text-[#4f31b7]" : "text-[#7e7884]"
               }`}
             >
@@ -201,7 +201,7 @@ export default function CompetitorsPage() {
           <select
             value={activity}
             onChange={(event) => setActivity(event.target.value)}
-            className="h-10 rounded-lg border border-[#ded9e4] bg-white px-3 text-[10px] font-semibold text-[#625c68]"
+            className="h-10 rounded-lg border border-[#ded9e4] bg-white px-3 text-[11px] font-semibold text-[#514b58]"
           >
             <option value="all">Activity: All</option>
             <option value="changed">Activity: Changed</option>
@@ -210,7 +210,7 @@ export default function CompetitorsPage() {
           <select
             value={status}
             onChange={(event) => setStatus(event.target.value)}
-            className="h-10 rounded-lg border border-[#ded9e4] bg-white px-3 text-[10px] font-semibold text-[#625c68]"
+            className="h-10 rounded-lg border border-[#ded9e4] bg-white px-3 text-[11px] font-semibold text-[#514b58]"
           >
             <option value="all">Status: All</option>
             <option value="active">Status: Active</option>
@@ -219,7 +219,7 @@ export default function CompetitorsPage() {
           <select
             value={sort}
             onChange={(event) => setSort(event.target.value)}
-            className="h-10 rounded-lg border border-[#ded9e4] bg-white px-3 text-[10px] font-semibold text-[#625c68]"
+            className="h-10 rounded-lg border border-[#ded9e4] bg-white px-3 text-[11px] font-semibold text-[#514b58]"
           >
             <option value="active">Sort: Most active</option>
             <option value="recent">Sort: Most recent</option>
@@ -257,7 +257,7 @@ export default function CompetitorsPage() {
           </button>
         </div>
       ) : (
-        <div className={view === "grid" ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
+        <div className={view === "grid" ? "grid gap-5 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
           {filteredCompetitors.map((competitor) => (
             <CompetitorCard
               key={competitor.id}
