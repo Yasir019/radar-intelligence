@@ -1,4 +1,4 @@
-import { ArrowLeft, ExternalLink, Globe, Loader2, Monitor, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Globe, Loader2, Monitor, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api/client";
@@ -6,6 +6,7 @@ import type { ChangeEvent, CheckRunResult, Competitor, PageType } from "../api/t
 import { ChangeTimeline } from "../components/ChangeTimeline";
 import { CompanyLogo } from "../components/CompanyLogo";
 import { BattlecardCard, PredictionCard } from "../components/CompetitorAI";
+import { DeleteCompetitorModal, EditCompetitorModal } from "../components/CompetitorManagementModals";
 import { inputClass, Modal, primaryBtn } from "../components/Modal";
 import { UrlTable } from "../components/UrlTable";
 
@@ -17,6 +18,8 @@ export default function CompetitorDetailPage() {
   const [competitor, setCompetitor] = useState<Competitor | null>(null);
   const [changes, setChanges] = useState<ChangeEvent[]>([]);
   const [addUrlOpen, setAddUrlOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [pageType, setPageType] = useState<PageType>("pricing");
   const [saving, setSaving] = useState(false);
@@ -46,12 +49,6 @@ export default function CompetitorDetailPage() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const removeCompetitor = async () => {
-    if (!confirm(`Delete ${competitor?.name} and all its tracked data?`)) return;
-    await api.delete(`/competitors/${id}`);
-    navigate("/");
   };
 
   const onChecked = (result: CheckRunResult) => {
@@ -99,13 +96,20 @@ export default function CompetitorDetailPage() {
             </div>
           </div>
           <div className="flex gap-2">
+            <button
+              onClick={() => setEditOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#ded9eb] bg-white px-3.5 py-2.5 text-sm font-semibold text-[#625e70] transition hover:border-[#cfc5ed] hover:bg-[#faf9fd]"
+            >
+              <Pencil size={14} /> Edit
+            </button>
             <button onClick={() => setAddUrlOpen(true)} className={primaryBtn}>
               <Plus size={15} /> Track a page
             </button>
             <button
-              onClick={removeCompetitor}
+              onClick={() => setDeleteOpen(true)}
               className="rounded-lg border border-gray-200 p-2 text-gray-400 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
               title="Delete competitor"
+              aria-label={`Delete ${competitor.name}`}
             >
               <Trash2 size={16} />
             </button>
@@ -119,6 +123,19 @@ export default function CompetitorDetailPage() {
           {notice}
         </div>
       )}
+
+      <EditCompetitorModal
+        competitor={competitor}
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        onSaved={setCompetitor}
+      />
+      <DeleteCompetitorModal
+        competitor={competitor}
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={() => navigate("/competitors")}
+      />
 
       <div className="card overflow-hidden">
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">

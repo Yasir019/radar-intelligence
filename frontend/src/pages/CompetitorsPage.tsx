@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { ChangeEvent, Competitor } from "../api/types";
 import { CompetitorCard } from "../components/CompetitorCard";
+import { DeleteCompetitorModal, EditCompetitorModal } from "../components/CompetitorManagementModals";
 import { inputClass, Modal, primaryBtn } from "../components/Modal";
 
 const COLORS = ["#7457ea", "#0ea5e9", "#f59e0b", "#10b981", "#e43d6c", "#8b5cf6"];
@@ -11,6 +12,8 @@ export default function CompetitorsPage() {
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [changes, setChanges] = useState<ChangeEvent[]>([]);
   const [addOpen, setAddOpen] = useState(false);
+  const [editing, setEditing] = useState<Competitor | null>(null);
+  const [deleting, setDeleting] = useState<Competitor | null>(null);
   const [name, setName] = useState("");
   const [website, setWebsite] = useState("");
   const [notes, setNotes] = useState("");
@@ -89,6 +92,8 @@ export default function CompetitorsPage() {
               key={c.id}
               competitor={c}
               changeCount={changesByCompetitor.get(c.id) ?? 0}
+              onEdit={setEditing}
+              onDelete={setDeleting}
             />
           ))}
         </div>
@@ -123,6 +128,23 @@ export default function CompetitorsPage() {
           </button>
         </form>
       </Modal>
+
+      <EditCompetitorModal
+        competitor={editing}
+        open={editing !== null}
+        onClose={() => setEditing(null)}
+        onSaved={(updated) =>
+          setCompetitors((current) => current.map((item) => (item.id === updated.id ? updated : item)))
+        }
+      />
+      <DeleteCompetitorModal
+        competitor={deleting}
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
+        onDeleted={(competitorId) =>
+          setCompetitors((current) => current.filter((item) => item.id !== competitorId))
+        }
+      />
     </div>
   );
 }
