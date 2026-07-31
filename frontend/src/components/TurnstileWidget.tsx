@@ -20,6 +20,8 @@ export default function TurnstileWidget({ onToken }: { onToken: (token: string) 
       widgetId = window.turnstile.render(ref.current, {
         sitekey: SITE_KEY,
         action: "turnstile-spin-v2",
+        appearance: "always",
+        theme: "light",
         callback: onToken,
         "expired-callback": () => onToken(""),
         "error-callback": () => onToken(""),
