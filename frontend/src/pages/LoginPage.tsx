@@ -1,4 +1,4 @@
-import { Check, Eye, EyeOff, Loader2, Radar, Sparkles, X } from "lucide-react";
+import { Check, Eye, EyeOff, Loader2, Radar, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { inputClass, primaryBtn } from "../components/Modal";
@@ -85,19 +85,6 @@ export default function LoginPage() {
       await loginWithGoogle(); // redirects to Google
     } catch (err: any) {
       setError(err?.message ?? "Google sign-in is not enabled yet");
-      setBusy(false);
-    }
-  };
-
-  const tryDemo = async () => {
-    setError(null);
-    setBusy(true);
-    try {
-      await login("demo@radar.app", "demo1234");
-      navigate("/");
-    } catch {
-      setError("Demo account not found — run `python -m app.seed_demo` in the backend first.");
-    } finally {
       setBusy(false);
     }
   };
@@ -240,17 +227,6 @@ export default function LoginPage() {
             Continue with Google
           </button>
 
-          <button
-            onClick={tryDemo}
-            disabled={busy}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#d9d0f4] bg-[#f3efff] px-3.5 py-2.5 text-sm font-semibold text-[#7457ea] transition-colors hover:bg-[#ebe5ff] disabled:opacity-50"
-          >
-            <Sparkles size={15} />
-            Explore the live demo
-          </button>
-          <p className="mt-2 text-center text-[11px] text-gray-400">
-            Pre-seeded with 4 competitors and 30 days of AI-analyzed changes
-          </p>
         </div>
       </div>
     </div>

@@ -7,7 +7,6 @@ import {
   FileSearch,
   GitCompareArrows,
   Globe2,
-  Loader2,
   Radar,
   ShieldCheck,
   Sparkles,
@@ -15,8 +14,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 import "./landing.css";
 
 const steps = [
@@ -154,9 +152,6 @@ function WorkflowPreview({ active }: { active: StepId }) {
 }
 
 export default function LandingPage() {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const [busy, setBusy] = useState(false);
   const [activeStep, setActiveStep] = useState<StepId>("detect");
   const [navScrolled, setNavScrolled] = useState(false);
   const workflowSectionRef = useRef<HTMLElement>(null);
@@ -207,18 +202,6 @@ export default function LandingPage() {
     };
   }, []);
 
-  const openDemo = async () => {
-    setBusy(true);
-    try {
-      await login("demo@radar.app", "demo1234");
-      navigate("/");
-    } catch {
-      navigate("/login");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const currentStep = steps.find((step) => step.id === activeStep) ?? steps[0];
 
   return (
@@ -252,11 +235,11 @@ export default function LandingPage() {
             Radar watches every critical competitor page, explains what changed, and gives your team the next best action before the market catches up.
           </p>
           <div className="lp-hero-actions">
-            <button className="lp-button lp-button-light" onClick={openDemo} disabled={busy}>
-              {busy ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-              Open live workspace
+            <Link className="lp-button lp-button-light" to="/login?mode=register">
+              <Sparkles size={16} />
+              Start with Radar
               <ArrowRight size={15} />
-            </button>
+            </Link>
             <a className="lp-button lp-button-ghost" href="#workflow">See how it works</a>
           </div>
           <span className="lp-hero-note">No card · 30 days of preloaded competitor activity</span>
@@ -422,7 +405,7 @@ export default function LandingPage() {
                 <li><Check size={14} /> 30 days of analyzed changes</li>
                 <li><Check size={14} /> AI briefs and War Room</li>
               </ul>
-              <button onClick={openDemo}>Open live demo <ArrowRight size={14} /></button>
+              <Link to="/login?mode=register">Create your workspace <ArrowRight size={14} /></Link>
             </article>
             <article className="lp-price-card lp-price-card-featured">
               <span className="lp-coming-soon">Coming soon</span>
@@ -450,7 +433,7 @@ export default function LandingPage() {
               <p>
                 The AI War Room turns tracked competitor moves into a live strategy debate, then gives your team a decisive referee verdict.
               </p>
-              <button onClick={openDemo}>Enter the War Room <ArrowRight size={14} /></button>
+              <Link to="/login?mode=register">Create your workspace <ArrowRight size={14} /></Link>
             </div>
             <div className="lp-debate-stage">
               <div className="lp-debate">
@@ -482,10 +465,7 @@ export default function LandingPage() {
           <ShieldCheck size={25} />
           <h2>Your market is moving right now.</h2>
           <p>Open the live workspace and see a month of competitor activity already analyzed, scored, and ready to act on.</p>
-          <button onClick={openDemo} disabled={busy}>
-            {busy && <Loader2 size={15} className="animate-spin" />}
-            Explore Radar <ArrowRight size={14} />
-          </button>
+          <Link to="/login?mode=register">Create your workspace <ArrowRight size={14} /></Link>
         </div>
       </section>
 
