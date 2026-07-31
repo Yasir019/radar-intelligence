@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
 import AskRadarPage from "./pages/AskRadarPage";
 import { useAuth } from "./context/AuthContext";
@@ -16,6 +16,7 @@ import WarRoomPage from "./pages/WarRoomPage";
 
 export default function App() {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -25,12 +26,18 @@ export default function App() {
     );
   }
 
+  // Password-reset links create a temporary Supabase session. Keep this
+  // sensitive auth flow outside the authenticated dashboard shell so the
+  // sidebar/header are never shown on the reset screen.
+  if (location.pathname === "/reset-password") {
+    return <ResetPasswordPage />;
+  }
+
   if (!user) {
     return (
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -48,7 +55,6 @@ export default function App() {
         <Route path="/ask" element={<AskRadarPage />} />
         <Route path="/brief" element={<BriefPage />} />
         <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppShell>
