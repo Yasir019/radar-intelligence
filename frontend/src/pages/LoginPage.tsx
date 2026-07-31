@@ -12,10 +12,10 @@ interface PasswordRule {
 }
 
 const PASSWORD_RULES: PasswordRule[] = [
-  { label: "At least 8 characters", test: (v) => v.length >= 8 },
-  { label: "One uppercase letter (A-Z)", test: (v) => /[A-Z]/.test(v) },
-  { label: "One lowercase letter (a-z)", test: (v) => /[a-z]/.test(v) },
-  { label: "One number (0-9)", test: (v) => /\d/.test(v) },
+  { label: "8+ characters", test: (v) => v.length >= 8 },
+  { label: "Uppercase letter", test: (v) => /[A-Z]/.test(v) },
+  { label: "Lowercase letter", test: (v) => /[a-z]/.test(v) },
+  { label: "Number", test: (v) => /\d/.test(v) },
 ];
 
 export default function LoginPage() {
@@ -222,11 +222,11 @@ export default function LoginPage() {
               </div>
 
               {mode === "register" && (password.length > 0 || touched.password) && (
-                <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 rounded-lg border border-[#ece9f3] bg-[#faf9fd] px-3 py-2.5">
+                <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-[#ece9f3] bg-[#faf9fd] px-3 py-2.5">
                   {passwordChecks.map((rule) => (
                     <span
                       key={rule.label}
-                      className={`flex items-center gap-1.5 text-[11px] ${
+                      className={`flex min-w-0 items-center gap-1.5 whitespace-nowrap text-[10px] leading-4 ${
                         rule.passed ? "text-[#168451]" : "text-[#9a95a8]"
                       }`}
                     >
