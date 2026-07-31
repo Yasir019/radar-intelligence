@@ -14,7 +14,10 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-export const api = axios.create({ baseURL: "/api" });
+// Use the same-origin API in local development; Render's static frontend can
+// point at the separately deployed FastAPI service through this build variable.
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim() || "/api";
+export const api = axios.create({ baseURL: apiBaseUrl });
 
 api.interceptors.request.use((config) => {
   const token = getToken();
