@@ -22,6 +22,7 @@ from app.schemas import (
     TrackedUrlOut,
     TrackedUrlUpdate,
 )
+from app.services.alerts import notify_competitor_added, notify_url_added
 
 router = APIRouter(prefix="/api/competitors", tags=["competitors"])
 
@@ -69,6 +70,7 @@ def create_competitor(
     db.add(competitor)
     db.commit()
     db.refresh(competitor)
+    notify_competitor_added(competitor.name, competitor.website)
     return competitor
 
 
@@ -136,6 +138,7 @@ def add_url(
     db.add(tracked)
     db.commit()
     db.refresh(tracked)
+    notify_url_added(competitor.name, tracked.url, tracked.page_type)
     return tracked
 
 

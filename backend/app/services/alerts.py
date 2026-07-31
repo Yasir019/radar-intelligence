@@ -66,3 +66,39 @@ def notify_change(db: Session, event: ChangeEvent) -> None:
             httpx.post(user_settings.slack_webhook_url, json={"text": text}, timeout=10.0)
         except Exception as exc:
             logger.warning("Slack webhook post failed: %s", exc)
+
+
+def notify_competitor_added(competitor_name: str, website: str) -> None:
+    """Send a lightweight lifecycle event to the Radar n8n webhook."""
+    _post_n8n_event(
+        {
+            "competitor": competitor_name,
+            "url": website,
+            "category": "competitor_added",
+            "impact_score": 0,
+            "summary": f"New competitor added to Radar: {competitor_name}",
+        }
+    )
+
+
+def notify_url_added(competitor_name: str, url: str, page_type: str) -> None:
+    """Send a tracked-page event so the Slack branch runs immediately."""
+    _post_n8n_event(
+        {
+            "competitor": competitor_name,
+            "url": url,
+            "page_type": page_type,
+            "category": "page_added",
+            "impact_score": 0,
+            "summary": f"New {page_type} page added for {competitor_name}",
+        }
+    )
+
+
+def _post_n8n_event(payload: dict) -> None:
+    if not settings.n8n_webhook_url:
+        return
+    try:
+        httpx.post(settings.n8n_webhook_url, json=payload, timeout=10.0)
+    except Exception as exc:
+        logger.warning("n8n lifecycle webhook post failed: %s", exc)
