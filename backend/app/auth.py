@@ -51,7 +51,7 @@ def _try_legacy_token(db: Session, token: str) -> User | None:
         return None
 
 
-def _verify_supabase_token(token: str) -> tuple[str, bool] | None:
+def _verify_supabase_token(token: str) -> str | None:
     """Validate a Supabase Auth access token and require a confirmed email."""
     if not settings.supabase_url or not settings.supabase_anon_key:
         return None
@@ -89,10 +89,9 @@ def _verify_supabase_token(token: str) -> tuple[str, bool] | None:
 def _try_supabase_token(db: Session, token: str) -> User | None:
     """Supabase Auth token (email/password or Google OAuth via Supabase).
     Maps to a local users row, creating it on first login."""
-    verified = _verify_supabase_token(token)
-    if verified is None:
+    email = _verify_supabase_token(token)
+    if email is None:
         return None
-    email, _ = verified
     user = db.query(User).filter(User.email == email).first()
     if user is None:
         user = User(email=email, password_hash="supabase-auth")
