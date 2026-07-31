@@ -71,6 +71,10 @@ export default function LoginPage() {
     e.preventDefault();
     setTouched({ email: true, password: true });
     if (!canSubmit) return;
+    if (!captchaToken) {
+      showToast("Complete the security check before continuing.", "error");
+      return;
+    }
     setBusy(true);
     try {
       if (mode === "login") {
@@ -100,6 +104,10 @@ export default function LoginPage() {
       showToast("Enter your email address first.", "error");
       return;
     }
+    if (!captchaToken) {
+      showToast("Complete the security check before resending.", "error");
+      return;
+    }
     setBusy(true);
     try {
       await resendVerification(email, captchaToken || undefined);
@@ -115,6 +123,10 @@ export default function LoginPage() {
     event.preventDefault();
     if (!emailValid) {
       showToast("Enter a valid email address first.", "error");
+      return;
+    }
+    if (!captchaToken) {
+      showToast("Complete the security check before requesting a reset link.", "error");
       return;
     }
     setBusy(true);
