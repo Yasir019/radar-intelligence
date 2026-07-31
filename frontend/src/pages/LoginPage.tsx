@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { inputClass, primaryBtn } from "../components/Modal";
 import { useAuth } from "../context/AuthContext";
+import TurnstileWidget from "../components/TurnstileWidget";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -33,6 +34,7 @@ export default function LoginPage() {
   const [resetMode, setResetMode] = useState(false);
   const [resendAvailable, setResendAvailable] = useState(false);
   const [toast, setToast] = useState<{ message: string; tone: "success" | "error" } | null>(null);
+  const [captchaToken, setCaptchaToken] = useState("");
 
   const showToast = (message: string, tone: "success" | "error" = "success") => {
     setToast({ message, tone });
@@ -61,6 +63,7 @@ export default function LoginPage() {
     setMode(m);
     setResetMode(false);
     setResendAvailable(false);
+    setCaptchaToken("");
     setTouched({ email: false, password: false });
   };
 
@@ -71,10 +74,10 @@ export default function LoginPage() {
     setBusy(true);
     try {
       if (mode === "login") {
-        await login(email.trim().toLowerCase(), password);
+        await login(email.trim().toLowerCase(), password, captchaToken || undefined);
         navigate("/");
       } else {
-        const result = await register(email.trim().toLowerCase(), password);
+        const result = await register(email.trim().toLowerCase(), password, captchaToken || undefined);
         if (result.needsConfirmation) {
           showToast("Account created. Verification email sent—check your inbox and spam folder.");
           setResendAvailable(true);
@@ -99,7 +102,7 @@ export default function LoginPage() {
     }
     setBusy(true);
     try {
-      await resendVerification(email);
+      await resendVerification(email, captchaToken || undefined);
       showToast("A new verification email has been sent. Check your inbox and spam folder.");
     } catch (err: any) {
       showToast(err?.message ?? "Unable to resend verification email.", "error");
@@ -116,7 +119,7 @@ export default function LoginPage() {
     }
     setBusy(true);
     try {
-      await sendPasswordReset(email);
+      await sendPasswordReset(email, captchaToken || undefined);
       showToast("If an account exists, a password reset email has been sent.");
     } catch (err: any) {
       showToast(err?.message ?? "Unable to send reset email.", "error");
@@ -171,6 +174,7 @@ export default function LoginPage() {
               <p className="text-sm font-semibold text-[#302938]">Reset your password</p>
               <p className="text-xs leading-5 text-[#8d8794]">Enter your email and we’ll send you a secure reset link.</p>
               <input type="email" required placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} autoComplete="email" />
+              <TurnstileWidget onToken={setCaptchaToken} />
               <button type="submit" disabled={busy} className={`${primaryBtn} w-full`}>{busy && <Loader2 size={14} className="animate-spin" />} Send reset link</button>
               <button type="button" onClick={() => setResetMode(false)} className="w-full text-xs font-semibold text-[#7457ea]">Back to sign in</button>
             </form>
@@ -243,6 +247,7 @@ export default function LoginPage() {
                 Resend verification email
               </button>
             )}
+            <TurnstileWidget onToken={setCaptchaToken} />
             <button
               type="submit"
               disabled={busy || (touched.email && touched.password && !canSubmit)}

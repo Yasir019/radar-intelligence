@@ -12,10 +12,10 @@ interface RegisterResult {
 interface AuthContextValue {
   user: Me | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<RegisterResult>;
-  resendVerification: (email: string) => Promise<void>;
-  sendPasswordReset: (email: string) => Promise<void>;
+  login: (email: string, password: string, captchaToken?: string) => Promise<void>;
+  register: (email: string, password: string, captchaToken?: string) => Promise<RegisterResult>;
+  resendVerification: (email: string, captchaToken?: string) => Promise<void>;
+  sendPasswordReset: (email: string, captchaToken?: string) => Promise<void>;
   loginWithGoogle: (flow?: "login" | "register") => Promise<void>;
   logout: () => void;
 }
@@ -84,9 +84,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, captchaToken?: string) => {
     // Supabase Auth first; fall back to the legacy account store (demo user)
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken } });
     if (!error && data.session) {
       setToken(data.session.access_token);
       await fetchMe();
@@ -100,11 +100,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fetchMe();
   };
 
-  const register = async (email: string, password: string): Promise<RegisterResult> => {
+  const register = async (email: string, password: string, captchaToken?: string): Promise<RegisterResult> => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/login?verified=1` },
+      options: { emailRedirectTo: `${window.location.origin}/login?verified=1`, captchaToken },
     });
     if (error) throw error;
     if (data.session) {
@@ -116,18 +116,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { needsConfirmation: true };
   };
 
-  const resendVerification = async (email: string) => {
+  const resendVerification = async (email: string, captchaToken?: string) => {
     const { error } = await supabase.auth.resend({
       type: "signup",
       email: email.trim().toLowerCase(),
-      options: { emailRedirectTo: `${window.location.origin}/login?verified=1` },
+      options: { emailRedirectTo: `${window.location.origin}/login?verified=1`, captchaToken },
     });
     if (error) throw error;
   };
 
-  const sendPasswordReset = async (email: string) => {
+  const sendPasswordReset = async (email: string, captchaToken?: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
       redirectTo: `${window.location.origin}/reset-password`,
+      captchaToken,
     });
     if (error) throw error;
   };
