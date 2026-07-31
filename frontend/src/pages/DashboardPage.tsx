@@ -209,7 +209,7 @@ export default function DashboardPage() {
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {topMetrics.map(({ label, value, helper, icon: Icon, style }) => (
-            <div key={label} className="card flex min-h-[82px] items-center gap-3 px-4 py-3 !rounded-xl">
+            <div key={label} className="card flex min-h-[82px] items-center gap-3 px-4 py-3 !rounded-none">
               <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${style}`}>
                 <Icon size={17} />
               </span>
