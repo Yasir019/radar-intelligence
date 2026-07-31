@@ -90,7 +90,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin + "/" },
+      // Return to Radar's auth route on the same origin that started OAuth.
+      // App.tsx will send an authenticated session to the dashboard.
+      options: { redirectTo: `${window.location.origin}/login` },
     });
     if (error) throw error;
     // Browser redirects to Google; on return, onAuthStateChange picks up the session.
