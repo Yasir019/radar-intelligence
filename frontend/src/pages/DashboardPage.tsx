@@ -13,9 +13,7 @@ import {
   Filter,
   Link2,
   MoreVertical,
-  Rocket,
   Search,
-  Sparkles,
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -189,37 +187,6 @@ export default function DashboardPage() {
     },
   ];
 
-  const summaryMetrics = [
-    {
-      label: "Competitors",
-      value: dashboard.summary.competitors,
-      growth: null,
-      icon: Building2,
-      style: "bg-[#eee8ff] text-[#6745cf]",
-    },
-    {
-      label: "Total changes",
-      value: dashboard.summary.total_changes,
-      growth: dashboard.summary.changes_growth_pct,
-      icon: TrendingUp,
-      style: "bg-[#e8f7f0] text-[#188e68]",
-    },
-    {
-      label: "High impact",
-      value: dashboard.summary.high_impact,
-      growth: dashboard.summary.high_impact_growth_pct,
-      icon: AlertTriangle,
-      style: "bg-[#eee8ff] text-[#7651dc]",
-    },
-    {
-      label: "New launches",
-      value: dashboard.summary.new_launches,
-      growth: dashboard.summary.launches_growth_pct,
-      icon: Rocket,
-      style: "bg-[#fff2df] text-[#e68b25]",
-    },
-  ];
-
   return (
     <div className="mx-auto max-w-[1480px] space-y-3">
       <section className="pb-1 pt-0.5">
@@ -237,13 +204,6 @@ export default function DashboardPage() {
               <CalendarDays size={14} />
               {topRangeStart}{topRangeEnd ? ` – ${topRangeEnd}` : ""}
             </div>
-            <Link
-              to="/brief"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#6742cf] px-4 py-2.5 text-[10px] font-bold text-white shadow-[0_8px_18px_rgba(103,66,207,.22)] transition hover:bg-[#5732bd]"
-            >
-              <Sparkles size={14} />
-              Generate brief
-            </Link>
           </div>
         </div>
 
@@ -357,27 +317,6 @@ export default function DashboardPage() {
             </ResponsiveContainer>
           </div>
 
-          <div className="grid border-t border-[#ebe8ee] sm:grid-cols-2 xl:grid-cols-4">
-            {summaryMetrics.map(({ label, value, growth, icon: Icon, style }, index) => (
-              <div
-                key={label}
-                className={`flex min-h-[74px] items-center gap-3 px-4 py-3 ${
-                  index > 0 ? "border-t border-[#ebe8ee] sm:border-l xl:border-t-0" : ""
-                } ${index === 2 ? "sm:border-t xl:border-t-0" : ""}`}
-              >
-                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${style}`}>
-                  <Icon size={14} />
-                </span>
-                <div>
-                  <p className="text-[9px] font-medium text-[#8d8793]">{label}</p>
-                  <div className="mt-0.5 flex items-center gap-2">
-                    <strong className="text-[17px] leading-none text-[#211b2a]">{value}</strong>
-                    {growth !== null && <Growth value={growth} />}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         <aside className="card overflow-hidden !rounded-xl">
