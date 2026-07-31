@@ -188,7 +188,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-[1480px] space-y-3">
+    <div className="mx-auto w-full max-w-[1240px] space-y-4">
       <section className="pb-1 pt-0.5">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -209,7 +209,7 @@ export default function DashboardPage() {
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {topMetrics.map(({ label, value, helper, icon: Icon, style }) => (
-            <div key={label} className="card flex min-h-[94px] items-center gap-3.5 px-5 py-4 !rounded-xl">
+            <div key={label} className="card flex min-h-[82px] items-center gap-3 px-4 py-3 !rounded-xl">
               <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${style}`}>
                 <Icon size={17} />
               </span>
@@ -225,7 +225,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <section className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="card overflow-hidden !rounded-xl">
           <div className="px-4 pb-0 pt-4 sm:px-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -279,7 +279,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="h-[265px] px-2 pt-2 sm:px-3">
+          <div className="h-[220px] px-2 pt-2 sm:px-3">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 10, right: 12, left: -28, bottom: 2 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e8e5eb" vertical={false} />
