@@ -30,7 +30,10 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && window.location.pathname !== "/login") {
+    // A stale token must not hijack public pages (especially the landing page)
+    // and send visitors to sign-in. AuthContext clears it during bootstrap.
+    const publicPath = ["/", "/login", "/reset-password"].includes(window.location.pathname);
+    if (error.response?.status === 401 && !publicPath) {
       clearToken();
       window.location.href = "/login";
     }

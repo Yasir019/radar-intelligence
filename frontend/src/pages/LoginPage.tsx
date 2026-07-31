@@ -1,5 +1,5 @@
 import { Check, Eye, EyeOff, Loader2, Radar, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { inputClass, primaryBtn } from "../components/Modal";
 import { useAuth } from "../context/AuthContext";
@@ -29,11 +29,22 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState({ email: false, password: false });
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const [resendAvailable, setResendAvailable] = useState(false);
+  const [toast, setToast] = useState<{ message: string; tone: "success" | "error" } | null>(null);
+
+  const showToast = (message: string, tone: "success" | "error" = "success") => {
+    setToast({ message, tone });
+    window.setTimeout(() => setToast(null), 5000);
+  };
+
+  useEffect(() => {
+    if (sessionStorage.getItem("radar_email_verified_notice") === "1") {
+      sessionStorage.removeItem("radar_email_verified_notice");
+      showToast("Email verified. You can sign in now.");
+    }
+  }, []);
 
   const emailValid = EMAIL_REGEX.test(email.trim());
   const passwordChecks = useMemo(
@@ -48,8 +59,6 @@ export default function LoginPage() {
 
   const switchMode = (m: "login" | "register") => {
     setMode(m);
-    setError(null);
-    setNotice(null);
     setResetMode(false);
     setResendAvailable(false);
     setTouched({ email: false, password: false });
@@ -59,8 +68,6 @@ export default function LoginPage() {
     e.preventDefault();
     setTouched({ email: true, password: true });
     if (!canSubmit) return;
-    setError(null);
-    setNotice(null);
     setBusy(true);
     try {
       if (mode === "login") {
@@ -69,16 +76,17 @@ export default function LoginPage() {
       } else {
         const result = await register(email.trim().toLowerCase(), password);
         if (result.needsConfirmation) {
-          setNotice("Account created! Check your email and click the confirmation link, then sign in.");
+          showToast("Account created. Verification email sent—check your inbox and spam folder.");
           setResendAvailable(true);
         } else {
           navigate("/");
         }
       }
     } catch (err: any) {
-      const message = err?.message ?? err?.response?.data?.detail ?? "Something went wrong";
-      setResendAvailable(/confirm|verified|verify/i.test(message));
-      setError(message);
+      const message = err?.response?.data?.detail ?? err?.message ?? "Something went wrong";
+      const needsVerification = /confirm|verified|verify/i.test(message);
+      setResendAvailable(needsVerification);
+      showToast(message, "error");
     } finally {
       setBusy(false);
     }
@@ -86,16 +94,15 @@ export default function LoginPage() {
 
   const resend = async () => {
     if (!emailValid) {
-      setError("Enter your email address first.");
+      showToast("Enter your email address first.", "error");
       return;
     }
     setBusy(true);
-    setError(null);
     try {
       await resendVerification(email);
-      setNotice("A new verification email has been sent. Check your inbox and spam folder.");
+      showToast("A new verification email has been sent. Check your inbox and spam folder.");
     } catch (err: any) {
-      setError(err?.message ?? "Unable to resend verification email.");
+      showToast(err?.message ?? "Unable to resend verification email.", "error");
     } finally {
       setBusy(false);
     }
@@ -104,34 +111,37 @@ export default function LoginPage() {
   const requestReset = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!emailValid) {
-      setError("Enter a valid email address first.");
+      showToast("Enter a valid email address first.", "error");
       return;
     }
     setBusy(true);
-    setError(null);
     try {
       await sendPasswordReset(email);
-      setNotice("If an account exists for this email, a password reset link has been sent.");
+      showToast("If an account exists, a password reset email has been sent.");
     } catch (err: any) {
-      setError(err?.message ?? "Unable to send reset email.");
+      showToast(err?.message ?? "Unable to send reset email.", "error");
     } finally {
       setBusy(false);
     }
   };
 
   const googleLogin = async () => {
-    setError(null);
     setBusy(true);
     try {
-      await loginWithGoogle(); // redirects to Google
+      await loginWithGoogle(mode); // redirects to Google
     } catch (err: any) {
-      setError(err?.message ?? "Google sign-in is not enabled yet");
+      showToast(err?.message ?? "Google sign-in is not enabled yet", "error");
       setBusy(false);
     }
   };
 
   return (
     <div className="soft-grid flex min-h-screen items-center justify-center bg-[#f3f1f8] px-4">
+      {toast && (
+        <div className={`fixed right-5 top-5 z-50 max-w-sm rounded-xl border px-4 py-3 text-sm shadow-lg ${toast.tone === "error" ? "border-red-200 bg-red-50 text-red-700" : "border-[#d9f0e3] bg-[#eaf8ef] text-[#168451]"}`} role="status">
+          {toast.message}
+        </div>
+      )}
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#7457ea] shadow-[0_10px_24px_rgba(116,87,234,0.24)]">
@@ -161,8 +171,6 @@ export default function LoginPage() {
               <p className="text-sm font-semibold text-[#302938]">Reset your password</p>
               <p className="text-xs leading-5 text-[#8d8794]">Enter your email and we’ll send you a secure reset link.</p>
               <input type="email" required placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} autoComplete="email" />
-              {error && <p className="text-xs text-red-600">{error}</p>}
-              {notice && <p className="rounded-lg border border-[#d9f0e3] bg-[#eaf8ef] px-3 py-2 text-xs text-[#168451]">{notice}</p>}
               <button type="submit" disabled={busy} className={`${primaryBtn} w-full`}>{busy && <Loader2 size={14} className="animate-spin" />} Send reset link</button>
               <button type="button" onClick={() => setResetMode(false)} className="w-full text-xs font-semibold text-[#7457ea]">Back to sign in</button>
             </form>
@@ -230,13 +238,7 @@ export default function LoginPage() {
               )}
             </div>
 
-            {error && <p className="text-xs text-red-600">{error}</p>}
-            {notice && (
-              <p className="rounded-lg border border-[#d9f0e3] bg-[#eaf8ef] px-3 py-2 text-xs text-[#168451]">
-                {notice}
-              </p>
-            )}
-            {(resendAvailable || mode === "register") && (
+            {resendAvailable && (
               <button type="button" onClick={resend} disabled={busy} className="w-full text-left text-xs font-semibold text-[#7457ea] hover:text-[#6043d6]">
                 Resend verification email
               </button>
@@ -252,7 +254,7 @@ export default function LoginPage() {
           </form>}
 
           {!resetMode && mode === "login" && (
-            <button type="button" onClick={() => { setResetMode(true); setError(null); setNotice(null); }} className="mt-3 w-full text-center text-xs font-semibold text-[#7457ea] hover:text-[#6043d6]">
+              <button type="button" onClick={() => { setResetMode(true); }} className="mt-3 w-full text-center text-xs font-semibold text-[#7457ea] hover:text-[#6043d6]">
               Forgot password?
             </button>
           )}

@@ -3,6 +3,8 @@ import { api, clearToken, getToken, setToken } from "../api/client";
 import { supabase } from "../api/supabase";
 import type { Me } from "../api/types";
 
+const verificationReturn = () => new URLSearchParams(window.location.search).get("verified") === "1";
+
 interface RegisterResult {
   needsConfirmation: boolean;
 }
@@ -14,7 +16,7 @@ interface AuthContextValue {
   register: (email: string, password: string) => Promise<RegisterResult>;
   resendVerification: (email: string) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
+  loginWithGoogle: (flow?: "login" | "register") => Promise<void>;
   logout: () => void;
 }
 
@@ -36,7 +38,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // 1) Supabase session (email/password or Google — survives refresh + OAuth redirect)
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        setToken(data.session.access_token);
+        const isVerificationReturn = window.location.pathname === "/login" && verificationReturn();
+        if (isVerificationReturn) {
+          sessionStorage.setItem("radar_email_verified_notice", "1");
+          await supabase.auth.signOut();
+          clearToken();
+        } else {
+          setToken(data.session.access_token);
+        }
       }
       // 2) Whatever token we have (Supabase or legacy demo), resolve the user
       if (getToken()) {
@@ -44,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await fetchMe();
         } catch {
           clearToken();
+          setUser(null);
         }
       }
       if (!cancelled) setLoading(false);
@@ -53,8 +63,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Keep the API token in sync with Supabase (refresh, OAuth redirect, sign-out)
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
+        if (window.location.pathname === "/login" && verificationReturn()) {
+          sessionStorage.setItem("radar_email_verified_notice", "1");
+          supabase.auth.signOut();
+          clearToken();
+          setUser(null);
+          return;
+        }
         setToken(session.access_token);
-        fetchMe().catch(() => clearToken());
+        fetchMe().catch(() => {
+          clearToken();
+          setUser(null);
+        });
       }
     });
 
@@ -72,13 +92,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await fetchMe();
       return;
     }
+    if (error && /confirm|verified|verify/i.test(error.message)) {
+      throw error;
+    }
     const legacy = await api.post("/auth/login", { email, password });
     setToken(legacy.data.access_token);
     await fetchMe();
   };
 
   const register = async (email: string, password: string): Promise<RegisterResult> => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/login?verified=1` },
+    });
     if (error) throw error;
     if (data.session) {
       setToken(data.session.access_token);
@@ -93,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.resend({
       type: "signup",
       email: email.trim().toLowerCase(),
-      options: { emailRedirectTo: `${window.location.origin}/login` },
+      options: { emailRedirectTo: `${window.location.origin}/login?verified=1` },
     });
     if (error) throw error;
   };
@@ -105,12 +132,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   };
 
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = async (_flow: "login" | "register" = "login") => {
+    // Do not let a stale local Supabase session silently reuse the previous
+    // account when the user starts a new Google auth flow.
+    await supabase.auth.signOut();
+    clearToken();
+    setUser(null);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       // Return to Radar's auth route on the same origin that started OAuth.
       // App.tsx will send an authenticated session to the dashboard.
-      options: { redirectTo: `${window.location.origin}/login` },
+      options: {
+        redirectTo: `${window.location.origin}/login`,
+        // Always show the Google account/consent step instead of silently
+        // reusing the last Google account after a user was removed.
+        queryParams: { prompt: "select_account consent" },
+      },
     });
     if (error) throw error;
     // Browser redirects to Google; on return, onAuthStateChange picks up the session.
