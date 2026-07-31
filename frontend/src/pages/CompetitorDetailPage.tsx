@@ -24,6 +24,7 @@ export default function CompetitorDetailPage() {
   const [pageType, setPageType] = useState<PageType>("pricing");
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [screenshotFailed, setScreenshotFailed] = useState(false);
 
   const load = () =>
     Promise.all([
@@ -34,6 +35,10 @@ export default function CompetitorDetailPage() {
   useEffect(() => {
     load();
   }, [id]);
+
+  useEffect(() => {
+    setScreenshotFailed(false);
+  }, [competitor?.website]);
 
   const addUrl = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,17 +165,25 @@ export default function CompetitorDetailPage() {
             Open site
           </a>
         </div>
-        <div className="relative h-[560px] bg-gray-50">
-          <iframe
-            src={competitor.website}
-            title={`${competitor.name} website preview`}
-            className="h-full w-full border-0"
-            sandbox="allow-scripts allow-same-origin allow-popups"
-            loading="lazy"
-          />
+        <div className="relative h-[560px] overflow-hidden bg-[#f3f1f6]">
+          {!screenshotFailed ? (
+            <img
+              src={`https://image.thum.io/get/width/1400/crop/900/noanimate/${competitor.website}`}
+              alt={`${competitor.name} website screenshot`}
+              className="h-full w-full object-cover object-top"
+              loading="lazy"
+              onError={() => setScreenshotFailed(true)}
+            />
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center px-8 text-center">
+              <Monitor size={28} className="text-[#7457ea]" />
+              <p className="mt-3 text-sm font-semibold text-gray-700">Preview unavailable</p>
+              <p className="mt-1 max-w-sm text-xs text-gray-500">This website did not return a screenshot. Open the site to view it directly.</p>
+            </div>
+          )}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center pb-2">
             <span className="rounded-full bg-gray-900/70 px-3 py-1 text-[11px] text-white backdrop-blur-sm">
-              Some sites block embedding — use "Open site" if the preview stays blank
+              Screenshot preview generated from the saved website URL
             </span>
           </div>
         </div>
