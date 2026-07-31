@@ -12,7 +12,9 @@ class Settings(BaseSettings):
     jwt_secret: str = "dev-secret-change-me"
     service_api_key: str = "change-me-n8n-key"
     n8n_webhook_url: str = ""
-    database_url: str = "sqlite:///./radar.db"
+    # Production storage is Supabase PostgreSQL. Keep this unset by default so
+    # a deployment cannot silently fall back to ephemeral SQLite storage.
+    database_url: str = ""
     supabase_url: str = ""
     supabase_anon_key: str = ""
 

@@ -28,6 +28,12 @@ change events compactly and asks the LLM for a structured markdown brief
 (executive summary / per-competitor highlights / threats & opportunities /
 recommended actions) → n8n converts to HTML and delivers.
 
+## Storage
+
+The application uses Supabase PostgreSQL through SQLAlchemy. SQLite is not a
+production fallback; the backend refuses to start when `DATABASE_URL` is not
+configured. Local development should use a Supabase connection string as well.
+
 ## Demo mode
 
 `config.effective_demo_mode = DEMO_MODE or not GROQ_API_KEY`

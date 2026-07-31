@@ -27,7 +27,7 @@ flowchart LR
         CHK["/api/checks/run<br/>crawl → clean → hash → diff"]
         AI["AI analyzer<br/>Groq gpt-oss-120b<br/>structured JSON output"]
         BRF["/api/briefs/generate<br/>weekly markdown brief"]
-        DB[("SQLite<br/>snapshots · changes · analyses")]
+        DB[("Supabase PostgreSQL<br/>snapshots · changes · analyses")]
     end
 
     UI["React dashboard<br/>charts · diff viewer · briefs"]
@@ -117,10 +117,10 @@ You get 4 competitors, 30 days of history, and 14 AI-analyzed changes — no key
 | Layer | Tech |
 |---|---|
 | Automation | **n8n** (schedule + webhook triggers, Slack routing) |
-| Backend | **FastAPI**, SQLAlchemy + SQLite, httpx, BeautifulSoup |
+| Backend | **FastAPI**, SQLAlchemy + Supabase PostgreSQL, httpx, BeautifulSoup |
 | AI | **Groq Cloud** — `openai/gpt-oss-120b`, JSON-schema structured outputs |
 | Frontend | **React 19** + TypeScript, Vite, **Tailwind CSS v4**, Recharts |
-| Auth | JWT (users) + static API key (machine/n8n callers) |
+| Auth | **Supabase Auth** (Google/email) + legacy JWT + static API key (n8n callers) |
 
 ## Project structure
 
