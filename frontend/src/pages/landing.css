@@ -62,7 +62,7 @@
 .lp-nav-scrolled .lp-brand { color: #171527; }
 .lp-nav-scrolled nav a, .lp-nav-scrolled .lp-nav-actions > a { color: #74717e; }
 .lp-nav-scrolled nav a:hover, .lp-nav-scrolled .lp-nav-actions > a:hover { color: #171527; }
-.lp-nav-actions { display: flex; align-items: center; gap: 10px; }
+.lp-nav-actions { display: flex; align-items: center; gap: 16px; }
 .lp-nav-actions button {
   border: 0; border-radius: 11px; padding: 10px 17px; color: #322060; background: white;
   font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 8px 24px rgba(23, 11, 54, .13);
@@ -71,8 +71,10 @@
   padding: 10px 17px; border-radius: 11px; color: #322060; background: white;
   font-size: 12px; font-weight: 800; box-shadow: 0 8px 24px rgba(23, 11, 54, .13);
 }
+.lp-nav-actions .lp-signup-button:hover { color: #322060; background: #ffffff; }
 .lp-nav-scrolled .lp-nav-actions button { color: white; background: #7457ea; box-shadow: 0 8px 20px rgba(116,87,234,.22); }
 .lp-nav-scrolled .lp-nav-actions .lp-signup-button { color: white; background: #7457ea; box-shadow: 0 8px 20px rgba(116,87,234,.22); }
+.lp-nav-scrolled .lp-nav-actions .lp-signup-button:hover { color: white; background: #6043d6; }
 
 .lp-hero-content { position: relative; z-index: 1; padding: 105px 0 110px; text-align: center; }
 .lp-pill, .lp-war-pill {
