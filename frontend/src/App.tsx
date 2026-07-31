@@ -6,6 +6,7 @@ import BriefPage from "./pages/BriefPage";
 import ChangeDetailPage from "./pages/ChangeDetailPage";
 import CompetitorDetailPage from "./pages/CompetitorDetailPage";
 import CompetitorsPage from "./pages/CompetitorsPage";
+import CompetitorActivityPage from "./pages/CompetitorActivityPage";
 import DashboardPage from "./pages/DashboardPage";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -38,6 +39,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/competitors" element={<CompetitorsPage />} />
+        <Route path="/competitor-activity" element={<CompetitorActivityPage />} />
         <Route path="/competitors/:id" element={<CompetitorDetailPage />} />
         <Route path="/changes/:id" element={<ChangeDetailPage />} />
         <Route path="/warroom" element={<WarRoomPage />} />

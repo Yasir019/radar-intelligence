@@ -1,4 +1,5 @@
 import {
+  Activity,
   Building2,
   ChevronDown,
   FileText,
@@ -18,6 +19,7 @@ import { NotificationBell } from "../NotificationBell";
 const navItems = [
   { to: "/", label: "Overview", icon: LayoutDashboard },
   { to: "/competitors", label: "Competitors", icon: Building2 },
+  { to: "/competitor-activity", label: "Activity", icon: Activity },
   { to: "/warroom", label: "War Room", icon: Swords },
   { to: "/ask", label: "Ask Radar", icon: MessageSquare },
   { to: "/brief", label: "AI Brief", icon: FileText },

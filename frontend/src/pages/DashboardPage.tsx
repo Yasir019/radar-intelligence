@@ -209,8 +209,8 @@ export default function DashboardPage() {
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {topMetrics.map(({ label, value, helper, icon: Icon, style }) => (
-            <div key={label} className="card flex min-h-[82px] items-center gap-3 px-4 py-3 !rounded-none">
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${style}`}>
+            <div key={label} className="card flex min-h-[112px] items-center gap-4 px-5 py-4 !rounded-none">
+              <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${style}`}>
                 <Icon size={17} />
               </span>
               <div>
@@ -375,7 +375,8 @@ export default function DashboardPage() {
         </aside>
       </section>
 
-      <section id="competitor-activity" className="card overflow-hidden !rounded-xl">
+      {/* Competitor activity now lives on its own dedicated page. */}
+      {false && <section id="competitor-activity" className="card overflow-hidden !rounded-xl">
         <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-baseline gap-2">
             <h2 className="font-['Georgia'] text-[17px] font-bold text-[#211b2a]">Competitor activity</h2>
@@ -548,7 +549,7 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
-      </section>
+      </section>}
 
       <div className="flex justify-end pb-1">
         <Link to="/brief" className="inline-flex items-center gap-1 text-[9px] font-bold text-[#6041c9]">
