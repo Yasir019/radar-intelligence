@@ -3,7 +3,17 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.auth import get_current_user
 from app.database import get_db
-from app.models import Competitor, TrackedUrl, User
+from app.models import (
+    Battlecard,
+    ChangeEvent,
+    Competitor,
+    Notification,
+    Prediction,
+    Snapshot,
+    TrackedUrl,
+    User,
+    WarRoom,
+)
 from app.schemas import (
     CompetitorCreate,
     CompetitorOut,
@@ -89,6 +99,27 @@ def delete_competitor(
     competitor_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     competitor = _get_owned_competitor(db, user, competitor_id)
+
+    # Delete dependants explicitly. The Supabase schema uses foreign keys for
+    # intelligence records, so relying only on the ORM relationship cascade
+    # leaves battlecards/predictions/war rooms (and change snapshots) behind.
+    tracked_ids = [tracked.id for tracked in competitor.tracked_urls]
+    if tracked_ids:
+        change_ids = [
+            row[0]
+            for row in db.query(ChangeEvent.id).filter(ChangeEvent.tracked_url_id.in_(tracked_ids)).all()
+        ]
+        if change_ids:
+            db.query(Notification).filter(Notification.change_event_id.in_(change_ids)).delete(
+                synchronize_session=False
+            )
+            db.query(ChangeEvent).filter(ChangeEvent.id.in_(change_ids)).delete(synchronize_session=False)
+        db.query(Snapshot).filter(Snapshot.tracked_url_id.in_(tracked_ids)).delete(synchronize_session=False)
+        db.query(TrackedUrl).filter(TrackedUrl.id.in_(tracked_ids)).delete(synchronize_session=False)
+
+    db.query(Battlecard).filter(Battlecard.competitor_id == competitor.id).delete(synchronize_session=False)
+    db.query(Prediction).filter(Prediction.competitor_id == competitor.id).delete(synchronize_session=False)
+    db.query(WarRoom).filter(WarRoom.competitor_id == competitor.id).delete(synchronize_session=False)
     db.delete(competitor)
     db.commit()
 
