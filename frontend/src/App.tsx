@@ -10,6 +10,7 @@ import CompetitorActivityPage from "./pages/CompetitorActivityPage";
 import DashboardPage from "./pages/DashboardPage";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SettingsPage from "./pages/SettingsPage";
 import WarRoomPage from "./pages/WarRoomPage";
 
@@ -29,6 +30,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -46,6 +48,7 @@ export default function App() {
         <Route path="/ask" element={<AskRadarPage />} />
         <Route path="/brief" element={<BriefPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppShell>

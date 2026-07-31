@@ -19,7 +19,7 @@ const PASSWORD_RULES: PasswordRule[] = [
 ];
 
 export default function LoginPage() {
-  const { login, register, loginWithGoogle } = useAuth();
+  const { login, register, resendVerification, sendPasswordReset, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<"login" | "register">(
@@ -32,6 +32,8 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [resetMode, setResetMode] = useState(false);
+  const [resendAvailable, setResendAvailable] = useState(false);
 
   const emailValid = EMAIL_REGEX.test(email.trim());
   const passwordChecks = useMemo(
@@ -48,6 +50,8 @@ export default function LoginPage() {
     setMode(m);
     setError(null);
     setNotice(null);
+    setResetMode(false);
+    setResendAvailable(false);
     setTouched({ email: false, password: false });
   };
 
@@ -66,13 +70,50 @@ export default function LoginPage() {
         const result = await register(email.trim().toLowerCase(), password);
         if (result.needsConfirmation) {
           setNotice("Account created! Check your email and click the confirmation link, then sign in.");
-          switchMode("login");
+          setResendAvailable(true);
         } else {
           navigate("/");
         }
       }
     } catch (err: any) {
-      setError(err?.message ?? err?.response?.data?.detail ?? "Something went wrong");
+      const message = err?.message ?? err?.response?.data?.detail ?? "Something went wrong";
+      setResendAvailable(/confirm|verified|verify/i.test(message));
+      setError(message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resend = async () => {
+    if (!emailValid) {
+      setError("Enter your email address first.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await resendVerification(email);
+      setNotice("A new verification email has been sent. Check your inbox and spam folder.");
+    } catch (err: any) {
+      setError(err?.message ?? "Unable to resend verification email.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const requestReset = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!emailValid) {
+      setError("Enter a valid email address first.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await sendPasswordReset(email);
+      setNotice("If an account exists for this email, a password reset link has been sent.");
+    } catch (err: any) {
+      setError(err?.message ?? "Unable to send reset email.");
     } finally {
       setBusy(false);
     }
@@ -115,7 +156,17 @@ export default function LoginPage() {
             ))}
           </div>
 
-          <form onSubmit={submit} className="space-y-3" noValidate>
+          {resetMode ? (
+            <form onSubmit={requestReset} className="space-y-3" noValidate>
+              <p className="text-sm font-semibold text-[#302938]">Reset your password</p>
+              <p className="text-xs leading-5 text-[#8d8794]">Enter your email and we’ll send you a secure reset link.</p>
+              <input type="email" required placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} autoComplete="email" />
+              {error && <p className="text-xs text-red-600">{error}</p>}
+              {notice && <p className="rounded-lg border border-[#d9f0e3] bg-[#eaf8ef] px-3 py-2 text-xs text-[#168451]">{notice}</p>}
+              <button type="submit" disabled={busy} className={`${primaryBtn} w-full`}>{busy && <Loader2 size={14} className="animate-spin" />} Send reset link</button>
+              <button type="button" onClick={() => setResetMode(false)} className="w-full text-xs font-semibold text-[#7457ea]">Back to sign in</button>
+            </form>
+          ) : <form onSubmit={submit} className="space-y-3" noValidate>
             <div>
               <input
                 type="email"
@@ -185,6 +236,11 @@ export default function LoginPage() {
                 {notice}
               </p>
             )}
+            {(resendAvailable || mode === "register") && (
+              <button type="button" onClick={resend} disabled={busy} className="w-full text-left text-xs font-semibold text-[#7457ea] hover:text-[#6043d6]">
+                Resend verification email
+              </button>
+            )}
             <button
               type="submit"
               disabled={busy || (touched.email && touched.password && !canSubmit)}
@@ -193,7 +249,13 @@ export default function LoginPage() {
               {busy && <Loader2 size={14} className="animate-spin" />}
               {mode === "login" ? "Sign in" : "Create account"}
             </button>
-          </form>
+          </form>}
+
+          {!resetMode && mode === "login" && (
+            <button type="button" onClick={() => { setResetMode(true); setError(null); setNotice(null); }} className="mt-3 w-full text-center text-xs font-semibold text-[#7457ea] hover:text-[#6043d6]">
+              Forgot password?
+            </button>
+          )}
 
           <div className="my-4 flex items-center gap-3 text-xs text-gray-300">
             <div className="h-px flex-1 bg-gray-100" />

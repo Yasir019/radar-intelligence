@@ -12,6 +12,8 @@ interface AuthContextValue {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<RegisterResult>;
+  resendVerification: (email: string) => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => void;
 }
@@ -87,6 +89,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { needsConfirmation: true };
   };
 
+  const resendVerification = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim().toLowerCase(),
+      options: { emailRedirectTo: `${window.location.origin}/login` },
+    });
+    if (error) throw error;
+  };
+
+  const sendPasswordReset = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) throw error;
+  };
+
   const loginWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -105,7 +123,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, register, resendVerification, sendPasswordReset, loginWithGoogle, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

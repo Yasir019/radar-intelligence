@@ -51,8 +51,8 @@ def _try_legacy_token(db: Session, token: str) -> User | None:
         return None
 
 
-def _verify_supabase_token(token: str) -> str | None:
-    """Validate a Supabase Auth access token; returns the user's email."""
+def _verify_supabase_token(token: str) -> tuple[str, bool] | None:
+    """Validate a Supabase Auth access token and require a confirmed email."""
     if not settings.supabase_url or not settings.supabase_anon_key:
         return None
     cached = _supabase_token_cache.get(token)
@@ -69,8 +69,12 @@ def _verify_supabase_token(token: str) -> str | None:
         )
         if response.status_code != 200:
             return None
-        email = (response.json().get("email") or "").strip().lower()
+        payload = response.json()
+        email = (payload.get("email") or "").strip().lower()
         if not email:
+            return None
+        confirmed = bool(payload.get("email_confirmed_at") or payload.get("confirmed_at"))
+        if not confirmed:
             return None
         _supabase_token_cache[token] = (email, time.monotonic() + _SUPABASE_CACHE_TTL)
         if len(_supabase_token_cache) > 1000:
@@ -85,9 +89,10 @@ def _verify_supabase_token(token: str) -> str | None:
 def _try_supabase_token(db: Session, token: str) -> User | None:
     """Supabase Auth token (email/password or Google OAuth via Supabase).
     Maps to a local users row, creating it on first login."""
-    email = _verify_supabase_token(token)
-    if email is None:
+    verified = _verify_supabase_token(token)
+    if verified is None:
         return None
+    email, _ = verified
     user = db.query(User).filter(User.email == email).first()
     if user is None:
         user = User(email=email, password_hash="supabase-auth")
