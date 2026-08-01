@@ -53,7 +53,8 @@ def _try_legacy_token(db: Session, token: str) -> User | None:
 
 def _verify_supabase_token(token: str) -> str | None:
     """Validate a Supabase Auth access token and require a confirmed email."""
-    if not settings.supabase_url or not settings.supabase_anon_key:
+    api_key = settings.supabase_publishable_key or settings.supabase_anon_key
+    if not settings.supabase_url or not api_key:
         return None
     cached = _supabase_token_cache.get(token)
     if cached and cached[1] > time.monotonic():
@@ -62,10 +63,10 @@ def _verify_supabase_token(token: str) -> str | None:
         response = httpx.get(
             f"{settings.supabase_url}/auth/v1/user",
             headers={
-                # Use the server-only key when available. Supabase accepts the
-                # caller's bearer token for identity while this key authorizes
-                # the backend-to-Supabase verification request.
-                "apikey": settings.supabase_service_role_key or settings.supabase_anon_key,
+                # The user's bearer token supplies identity. A publishable key
+                # is sufficient for /auth/v1/user and avoids privileged keys in
+                # the normal session-verification path.
+                "apikey": api_key,
                 "Authorization": f"Bearer {token}",
             },
             timeout=10.0,
