@@ -16,5 +16,4 @@ frontend/dist/
 # MCP config contains an auth token — never commit
 .mcp.json
 
-# Local Claude Code settings
-.claude/
+.vercel
