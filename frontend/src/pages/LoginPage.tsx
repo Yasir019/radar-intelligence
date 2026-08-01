@@ -5,7 +5,7 @@ import { inputClass, primaryBtn } from "../components/Modal";
 import { useAuth } from "../context/AuthContext";
 import TurnstileWidget from "../components/TurnstileWidget";
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.com$/i;
 
 interface PasswordRule {
   label: string;
@@ -207,7 +207,7 @@ export default function LoginPage() {
               />
               {emailError && (
                 <p className="mt-1 flex items-center gap-1 text-[11px] text-[#e43d6c]">
-                  <X size={11} /> {email.length === 0 ? "Email address is required." : "Enter a valid email address (e.g. name@gmail.com)"}
+                  <X size={11} /> {email.length === 0 ? "Email address is required." : "Use a valid .com email address (e.g. name@gmail.com)."}
                 </p>
               )}
             </div>
