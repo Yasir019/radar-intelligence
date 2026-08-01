@@ -1,140 +1,128 @@
-# 📡 Radar — AI-Powered Competitor Intelligence
+# Radar
 
-**Know what your competitors changed — minutes after they change it.**
+Radar is an AI-powered competitor intelligence workspace for monitoring pricing, product, changelog, feature, and marketing pages. It detects meaningful changes, explains their impact, and turns them into focused actions for a product or revenue team.
 
-B2B teams usually find out about a competitor's pricing cut or feature launch weeks late,
-from a lost deal. Radar watches competitors' pricing pages, changelogs, feature pages and
-blogs; detects every change automatically; has an LLM analyze *what changed, why it
-matters, and what to do about it*; and routes alerts to Slack — all orchestrated by an
-**n8n automation workflow**.
+![Radar dashboard mockup](./Radar-mocup.png)
 
-> Built as a flagship AI-automation portfolio project: FastAPI + React + Groq
-> (`openai/gpt-oss-120b`) + n8n, with a full zero-setup demo mode.
+## What it includes
 
----
+- A polished landing page that explains the product and guides visitors into the demo or authentication flow.
+- Email/password and Google authentication through Supabase Auth, with email verification, password reset, CAPTCHA protection, and session enforcement.
+- An overview dashboard with market movement, priority alerts, tracked-page activity, and impact breakdowns.
+- Competitor management with company logos, tracked URLs, page snapshots, changes, filters, and activity views.
+- Change intelligence that cleans page HTML, hashes snapshots, creates diffs, categorizes changes, scores impact, and recommends an action.
+- AI briefs, battlecards, predictions, War Room analysis, notifications, and settings.
+- A seeded demo workspace that can run without paid AI or automation credentials.
+- n8n and Slack integrations for scheduled checks, weekly briefs, and alert fan-out.
+
+## Product flow
+
+1. A user adds a competitor and one or more pages to monitor.
+2. A scheduled or manual check fetches and cleans the page.
+3. Radar compares the new snapshot with the previous one and stores the change.
+4. The AI analyzer produces a structured summary, category, impact score, and recommendation.
+5. The dashboard displays the result; high-impact changes can be routed to Slack through n8n.
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    subgraph n8n["n8n — workflow 'Radar' (automation layer)"]
-        A["Flow A · Schedule (hourly)"]
-        B["Flow B · Schedule (Mon 08:00)"]
-        C["Flow C · Webhook trigger"]
-    end
+Radar is split into three focused layers:
 
-    subgraph api["FastAPI backend (AI brain)"]
-        CHK["/api/checks/run<br/>crawl → clean → hash → diff"]
-        AI["AI analyzer<br/>Groq gpt-oss-120b<br/>structured JSON output"]
-        BRF["/api/briefs/generate<br/>weekly markdown brief"]
-        DB[("Supabase PostgreSQL<br/>snapshots · changes · analyses")]
-    end
+| Layer | Responsibility |
+| --- | --- |
+| React frontend | Landing page, authentication UI, dashboard, competitor workspace, charts, diffs, briefs, and settings. |
+| FastAPI backend | Authenticated API, crawling, HTML cleaning, snapshot/diff processing, AI analysis, database access, and integrations. |
+| Supabase + automation | Supabase Auth and PostgreSQL provide identity and persistence; n8n schedules jobs and routes alerts to Slack. |
 
-    UI["React dashboard<br/>charts · diff viewer · briefs"]
-    SLACK["Slack channels"]
-
-    A -->|X-API-Key| CHK
-    B -->|X-API-Key| BRF
-    CHK --> AI --> DB
-    CHK -->|"instant fanout (N8N_WEBHOOK_URL)"| C
-    C -->|route by category| SLACK
-    A -->|"impact ≥ 7"| SLACK
-    B -->|deliver brief| SLACK
-    UI <--> api
-```
-
-**Division of labor:** n8n owns *when things happen and where alerts go*
-(schedules, branching on impact score, channel routing). FastAPI owns *the
-intelligence* (crawling, change detection, AI analysis, storage). Either works
-without the other — n8n enhances, never blocks.
-
-## How the AI pipeline works
-
-When a tracked page's content hash changes, the backend diffs the old and new
-snapshots, extracts **only the changed regions**, and sends them to
-`openai/gpt-oss-120b` on Groq with a strict JSON schema:
-
-```python
-class ChangeAnalysis(BaseModel):
-    summary: str                 # what changed and why it matters
-    category: Literal["pricing_change", "new_feature",
-                      "messaging_change", "promotion", "other"]
-    impact_score: int            # 1 (trivial) … 10 (urgent threat)
-    recommended_action: str      # one concrete step for the team
-```
-
-Sample real output for a detected pricing change:
-
-```json
-{
-  "summary": "Acme cut the Pro plan from $79 to $69 per user and introduced a usage-based 'Scale' add-on. This is a deliberate move against mid-market deals.",
-  "category": "pricing_change",
-  "impact_score": 8,
-  "recommended_action": "Refresh the Acme battlecard with the new pricing and prep objection handling for Q2 renewals."
-}
-```
-
-The response is validated with Pydantic (one retry on schema drift), stored with
-the change event, and — if the impact clears the user's threshold — fanned out
-to Slack via n8n.
-
-## Features
-
-- 🕐 **Hands-off monitoring** — n8n schedules hourly sweeps; manual "Check now" in the UI
-- 🔍 **Change detection** — HTML cleaning + SHA-256 content hashing + line-level diffs
-- 🧠 **AI change analysis** — summary, category, 1-10 impact score, recommended action
-- 📰 **AI weekly brief** — executive markdown summary across all competitors
-- 🔔 **Smart alerts** — in-app feed + Slack routing by category/impact via n8n
-- 📊 **Enterprise dashboard** — activity & impact charts, change timeline, diff viewer
-- 👥 **Multi-user** — JWT auth, per-user data scoping, per-user alert thresholds
-- 🎭 **Demo mode** — full seeded experience with zero API keys and no n8n
-
-## Run the demo in 3 commands
-
-```bash
-cd backend && python -m venv .venv && .venv\Scripts\pip install -r requirements.txt
-.venv\Scripts\python -m app.seed_demo && start .venv\Scripts\python -m uvicorn app.main:app --port 8000
-cd ../frontend && npm install && npm run dev
-```
-
-Open http://localhost:5173 → click **“Explore the live demo”**.
-You get 4 competitors, 30 days of history, and 14 AI-analyzed changes — no keys needed.
-
-## Going live
-
-1. `cp backend/.env.example backend/.env` and set:
-   - `GROQ_API_KEY` (free at console.groq.com) and `DEMO_MODE=false`
-   - `SERVICE_API_KEY` — shared secret for n8n → API calls
-2. Add real competitors and their pricing/changelog URLs in the UI.
-3. Configure the n8n workflow: see [`n8n/README.md`](n8n/README.md) — one
-   workflow named **Radar** with three flows (hourly checks, weekly brief,
-   instant alert fanout), built programmatically via the **n8n MCP server**
-   (a local-import JSON is also included at `n8n/workflows/radar.json`).
-4. Set `N8N_WEBHOOK_URL` in the backend `.env` to enable instant fanout.
+The frontend uses Supabase Auth for identity and sends the resulting session to the API. The API maps authenticated users to the application profile and workspace data. Background checks and briefs can be started manually or by n8n webhooks.
 
 ## Tech stack
 
-| Layer | Tech |
-|---|---|
-| Automation | **n8n** (schedule + webhook triggers, Slack routing) |
-| Backend | **FastAPI**, SQLAlchemy + Supabase PostgreSQL, httpx, BeautifulSoup |
-| AI | **Groq Cloud** — `openai/gpt-oss-120b`, JSON-schema structured outputs |
-| Frontend | **React 19** + TypeScript, Vite, **Tailwind CSS v4**, Recharts |
-| Auth | **Supabase Auth** (Google/email) + legacy JWT + static API key (n8n callers) |
+<p>
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/Supabase-PostgreSQL_+_Auth-3ECF8E?logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/n8n-Automation-EA4B71?logo=n8n&logoColor=white" alt="n8n" />
+  <img src="https://img.shields.io/badge/Slack-Alerts-4A154B?logo=slack&logoColor=white" alt="Slack" />
+  <img src="https://img.shields.io/badge/Groq-LLM-F55036?logo=groq&logoColor=white" alt="Groq" />
+</p>
 
-## Project structure
+| Area | Tools |
+| --- | --- |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, Recharts, Lucide icons |
+| Backend | FastAPI, SQLAlchemy, Pydantic, httpx, BeautifulSoup, bcrypt, PyJWT |
+| Data and auth | Supabase PostgreSQL, Supabase Auth, Row Level Security policies |
+| Intelligence | Groq Cloud with structured JSON analysis |
+| Automation | n8n workflows, webhooks, Slack notifications |
+| Hosting | Vercel frontend and Render API |
 
+## Repository layout
+
+```text
+backend/
+  app/
+    routers/       API routes for auth, competitors, changes, briefs, stats, and more
+    services/      crawler, differ, AI analysis, briefs, alerts, battlecards, and predictions
+    models.py      SQLAlchemy application models
+    seed_demo.py   reproducible demo workspace seed
+frontend/
+  src/
+    pages/         landing, auth, dashboard, competitors, activity, briefs, and settings
+    components/   charts, cards, diffs, modals, logos, and layout
+n8n/
+  workflows/      Radar automation workflow export
+docs/             supporting project notes and references
 ```
-├── backend/app/
-│   ├── routers/        auth · competitors · checks · changes · briefs · notifications · settings · stats
-│   ├── services/       crawler · differ · ai_analyzer · brief_generator · alerts
-│   └── seed_demo.py    one-command demo dataset
-├── frontend/src/
-│   ├── pages/          Dashboard · CompetitorDetail · ChangeDetail · Brief · Settings · Login
-│   └── components/     charts · timeline · diff viewer · notification bell
-└── n8n/workflows/radar.json   the "Radar" automation workflow (import into n8n)
+
+## Run locally
+
+### Backend
+
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+python -m app.seed_demo
+python -m uvicorn app.main:app --reload --port 8000
 ```
 
-## Screenshots
+### Frontend
 
-> `docs/screenshots/` — dashboard, change diff view, AI brief, n8n canvas.
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open <http://localhost:5173>. The seeded demo account is `demo@radar.app` with password `demo1234`.
+
+## Configuration
+
+Copy the environment examples before running a connected setup:
+
+- `frontend/.env.example` for Supabase, Turnstile, and API URL settings.
+- `backend/.env.example` for database, Supabase verification, Groq, and n8n settings.
+
+Keep all secret keys in environment variables. Never commit SMTP passwords, JWT secrets, service keys, or API tokens.
+
+## Automation workflow
+
+The exported workflow is [`n8n/workflows/radar.json`](n8n/workflows/radar.json). It supports scheduled monitoring, weekly brief generation, and webhook-based alert fan-out. See [`n8n/README.md`](n8n/README.md) for setup notes.
+
+## Deployment
+
+- Frontend: Vercel
+- Backend: Render
+- Database and authentication: Supabase
+- Automation: n8n Cloud
+
+The frontend calls the Render API through `VITE_API_BASE_URL`; production secrets are configured in the hosting providers rather than stored in this repository.
+
+## License
+
+This repository is a portfolio and product prototype. Add the license that matches your intended distribution before publishing it for reuse.
