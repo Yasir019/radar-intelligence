@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_anon_key: str = ""
     supabase_publishable_key: str = ""
+    supabase_jwt_secret: str = ""
     # Server-only key used to validate Supabase sessions from the API.
     # Never expose this value to the frontend.
     supabase_service_role_key: str = ""

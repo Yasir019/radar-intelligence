@@ -74,7 +74,19 @@ def _verify_supabase_token(token: str) -> str | None:
         # on the legacy /auth/v1/user API-key path (which returns 403 for these
         # tokens).
         header = jwt.get_unverified_header(token)
-        if header.get("alg") != "HS256":
+        if header.get("alg") == "HS256" and settings.supabase_jwt_secret:
+            payload = jwt.decode(
+                token,
+                settings.supabase_jwt_secret,
+                algorithms=["HS256"],
+                audience="authenticated",
+                issuer=f"{settings.supabase_url}/auth/v1",
+            )
+            email = (payload.get("email") or "").strip().lower()
+            if email:
+                _supabase_token_cache[token] = (email, time.monotonic() + _SUPABASE_CACHE_TTL)
+                return email
+        elif header.get("alg") != "HS256":
             try:
                 payload = jwt.decode(
                     token,
