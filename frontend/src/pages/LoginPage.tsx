@@ -55,7 +55,8 @@ export default function LoginPage() {
   );
   const passwordValid = passwordChecks.every((r) => r.passed);
 
-  const emailError = touched.email && email.length > 0 && !emailValid;
+  const emailError = touched.email && !emailValid;
+  const passwordError = touched.password && (mode === "login" ? password.length === 0 : !passwordValid);
   const canSubmit =
     mode === "login" ? emailValid && password.length > 0 : emailValid && passwordValid;
 
@@ -206,7 +207,7 @@ export default function LoginPage() {
               />
               {emailError && (
                 <p className="mt-1 flex items-center gap-1 text-[11px] text-[#e43d6c]">
-                  <X size={11} /> Enter a valid email address (e.g. name@gmail.com)
+                  <X size={11} /> {email.length === 0 ? "Email address is required." : "Enter a valid email address (e.g. name@gmail.com)"}
                 </p>
               )}
             </div>
@@ -251,6 +252,9 @@ export default function LoginPage() {
                     </span>
                   ))}
                 </div>
+              )}
+              {passwordError && mode === "login" && (
+                <p className="mt-1 flex items-center gap-1 text-[11px] text-[#e43d6c]"><X size={11} /> Password is required.</p>
               )}
             </div>
 
