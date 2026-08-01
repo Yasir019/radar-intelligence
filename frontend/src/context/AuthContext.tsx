@@ -85,16 +85,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string, captchaToken?: string) => {
-    // Supabase Auth first; fall back to the legacy account store (demo user)
+    // Supabase Auth is the source of truth for real accounts. Only the seeded
+    // demo account uses the legacy store; falling back for every Supabase
+    // error masks real credential/verification errors and can produce a
+    // misleading "Invalid or expired token" response from /auth/me.
     const { data, error } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken } });
     if (!error && data.session) {
       setToken(data.session.access_token);
       await fetchMe();
       return;
     }
-    if (error && /confirm|verified|verify/i.test(error.message)) {
-      throw error;
+    if (email.trim().toLowerCase() !== "demo@radar.app") {
+      throw error ?? new Error("Unable to sign in.");
     }
+    // Demo account remains available for the public demo workspace.
     const legacy = await api.post("/auth/login", { email, password });
     setToken(legacy.data.access_token);
     await fetchMe();
