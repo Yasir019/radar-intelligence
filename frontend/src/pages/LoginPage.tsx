@@ -54,7 +54,9 @@ export default function LoginPage() {
     }
   }, []);
 
-  const emailValid = EMAIL_REGEX.test(email.trim());
+  const normalizedEmail = email.trim().toLowerCase();
+  const isDemoEmail = normalizedEmail === "demo@radar.app";
+  const emailValid = isDemoEmail || EMAIL_REGEX.test(normalizedEmail);
   const passwordChecks = useMemo(
     () => PASSWORD_RULES.map((rule) => ({ ...rule, passed: rule.test(password) })),
     [password],
