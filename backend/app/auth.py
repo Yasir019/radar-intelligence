@@ -1,5 +1,6 @@
 import time
 from datetime import datetime, timedelta, timezone
+from functools import lru_cache
 
 import bcrypt
 import httpx
@@ -20,6 +21,11 @@ TOKEN_TTL_DAYS = 7
 # Short-lived cache for verified Supabase tokens: token -> (email, expires_at)
 _supabase_token_cache: dict[str, tuple[str, float]] = {}
 _SUPABASE_CACHE_TTL = 60.0
+
+
+@lru_cache(maxsize=1)
+def _supabase_jwks_client() -> jwt.PyJWKClient:
+    return jwt.PyJWKClient(f"{settings.supabase_url}/auth/v1/.well-known/jwks.json")
 
 
 def hash_password(password: str) -> str:
@@ -53,13 +59,36 @@ def _try_legacy_token(db: Session, token: str) -> User | None:
 
 def _verify_supabase_token(token: str) -> str | None:
     """Validate a Supabase Auth access token and require a confirmed email."""
-    api_key = settings.supabase_publishable_key or settings.supabase_anon_key
-    if not settings.supabase_url or not api_key:
+    if not settings.supabase_url:
         return None
     cached = _supabase_token_cache.get(token)
     if cached and cached[1] > time.monotonic():
         return cached[0]
     try:
+        # Supabase now signs access tokens with ECC (P-256). Validate the
+        # signature against its public JWKS endpoint so the API does not rely
+        # on the legacy /auth/v1/user API-key path (which returns 403 for these
+        # tokens).
+        header = jwt.get_unverified_header(token)
+        if header.get("alg") != "HS256":
+            try:
+                payload = jwt.decode(
+                    token,
+                    _supabase_jwks_client().get_signing_key_from_jwt(token).key,
+                    algorithms=["ES256", "RS256"],
+                    audience="authenticated",
+                    issuer=f"{settings.supabase_url}/auth/v1",
+                )
+                email = (payload.get("email") or "").strip().lower()
+                if email:
+                    _supabase_token_cache[token] = (email, time.monotonic() + _SUPABASE_CACHE_TTL)
+                    return email
+            except jwt.PyJWTError:
+                pass
+
+        # Backward-compatible fallback for sessions signed with the previous
+        # HS256 key, which Supabase continues to accept until expiry.
+        api_key = settings.supabase_publishable_key or settings.supabase_anon_key
         response = httpx.get(
             f"{settings.supabase_url}/auth/v1/user",
             headers={
