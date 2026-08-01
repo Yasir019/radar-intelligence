@@ -25,7 +25,11 @@ _SUPABASE_CACHE_TTL = 60.0
 
 @lru_cache(maxsize=1)
 def _supabase_jwks_client() -> jwt.PyJWKClient:
-    return jwt.PyJWKClient(f"{settings.supabase_url}/auth/v1/.well-known/jwks.json")
+    api_key = settings.supabase_publishable_key or settings.supabase_anon_key
+    return jwt.PyJWKClient(
+        f"{settings.supabase_url}/auth/v1/.well-known/jwks.json",
+        headers={"apikey": api_key} if api_key else None,
+    )
 
 
 def hash_password(password: str) -> str:
