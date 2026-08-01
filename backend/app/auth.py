@@ -62,7 +62,10 @@ def _verify_supabase_token(token: str) -> str | None:
         response = httpx.get(
             f"{settings.supabase_url}/auth/v1/user",
             headers={
-                "apikey": settings.supabase_anon_key,
+                # Use the server-only key when available. Supabase accepts the
+                # caller's bearer token for identity while this key authorizes
+                # the backend-to-Supabase verification request.
+                "apikey": settings.supabase_service_role_key or settings.supabase_anon_key,
                 "Authorization": f"Bearer {token}",
             },
             timeout=10.0,

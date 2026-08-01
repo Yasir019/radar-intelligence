@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     database_url: str = ""
     supabase_url: str = ""
     supabase_anon_key: str = ""
+    # Server-only key used to validate Supabase sessions from the API.
+    # Never expose this value to the frontend.
+    supabase_service_role_key: str = ""
 
     @property
     def effective_demo_mode(self) -> bool:
