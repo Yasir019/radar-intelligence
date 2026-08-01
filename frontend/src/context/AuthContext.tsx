@@ -89,13 +89,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // demo account uses the legacy store; falling back for every Supabase
     // error masks real credential/verification errors and can produce a
     // misleading "Invalid or expired token" response from /auth/me.
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken } });
+    const normalizedEmail = email.trim().toLowerCase();
+    // Remove any session left by a verification redirect or an older signing
+    // key before creating a fresh password session.
+    if (normalizedEmail !== "demo@radar.app") {
+      await supabase.auth.signOut({ scope: "local" });
+      clearToken();
+    }
+    const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password, options: { captchaToken } });
     if (!error && data.session) {
       setToken(data.session.access_token);
       await fetchMe();
       return;
     }
-    if (email.trim().toLowerCase() !== "demo@radar.app") {
+    if (normalizedEmail !== "demo@radar.app") {
       throw error ?? new Error("Unable to sign in.");
     }
     // Demo account remains available for the public demo workspace.
