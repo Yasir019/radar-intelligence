@@ -35,6 +35,12 @@ export default function LoginPage() {
   const [resendAvailable, setResendAvailable] = useState(false);
   const [toast, setToast] = useState<{ message: string; tone: "success" | "error" } | null>(null);
   const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaNonce, setCaptchaNonce] = useState(0);
+
+  const resetCaptcha = () => {
+    setCaptchaToken("");
+    setCaptchaNonce((nonce) => nonce + 1);
+  };
 
   const showToast = (message: string, tone: "success" | "error" = "success") => {
     setToast({ message, tone });
@@ -64,7 +70,7 @@ export default function LoginPage() {
     setMode(m);
     setResetMode(false);
     setResendAvailable(false);
-    setCaptchaToken("");
+    resetCaptcha();
     setTouched({ email: false, password: false });
   };
 
@@ -97,6 +103,7 @@ export default function LoginPage() {
       showToast(message, "error");
     } finally {
       setBusy(false);
+      resetCaptcha();
     }
   };
 
@@ -117,6 +124,7 @@ export default function LoginPage() {
       showToast(err?.message ?? "Unable to resend verification email.", "error");
     } finally {
       setBusy(false);
+      resetCaptcha();
     }
   };
 
@@ -138,6 +146,7 @@ export default function LoginPage() {
       showToast(err?.message ?? "Unable to send reset email.", "error");
     } finally {
       setBusy(false);
+      resetCaptcha();
     }
   };
 
@@ -187,7 +196,7 @@ export default function LoginPage() {
               <p className="text-sm font-semibold text-[#302938]">Reset your password</p>
               <p className="text-xs leading-5 text-[#8d8794]">Enter your email and we’ll send you a secure reset link.</p>
               <input type="email" required placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} autoComplete="email" />
-              <TurnstileWidget onToken={setCaptchaToken} />
+              <TurnstileWidget key={`reset-${captchaNonce}`} onToken={setCaptchaToken} />
               <button type="submit" disabled={busy} className={`${primaryBtn} w-full`}>{busy && <Loader2 size={14} className="animate-spin" />} Send reset link</button>
               <button type="button" onClick={() => setResetMode(false)} className="w-full text-xs font-semibold text-[#7457ea]">Back to sign in</button>
             </form>
@@ -263,7 +272,7 @@ export default function LoginPage() {
                 Resend verification email
               </button>
             )}
-            <TurnstileWidget onToken={setCaptchaToken} />
+            <TurnstileWidget key={`auth-${captchaNonce}`} onToken={setCaptchaToken} />
             <button
               type="submit"
               disabled={busy || (touched.email && touched.password && !canSubmit)}

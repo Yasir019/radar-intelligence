@@ -23,8 +23,14 @@ export default function TurnstileWidget({ onToken }: { onToken: (token: string) 
         appearance: "always",
         theme: "light",
         callback: onToken,
-        "expired-callback": () => onToken(""),
-        "error-callback": () => onToken(""),
+        "expired-callback": () => {
+          onToken("");
+          if (widgetId && window.turnstile) window.turnstile.reset(widgetId);
+        },
+        "error-callback": () => {
+          onToken("");
+          if (widgetId && window.turnstile) window.turnstile.reset(widgetId);
+        },
       });
       if (timer) window.clearInterval(timer);
     };
