@@ -59,22 +59,39 @@ The frontend uses Supabase Auth for identity and sends the resulting session to 
 | Automation | n8n workflows, webhooks, Slack notifications |
 | Hosting | Vercel frontend and Render API |
 
-## Repository layout
+## Project structure
 
 ```text
-backend/
-  app/
-    routers/       API routes for auth, competitors, changes, briefs, stats, and more
-    services/      crawler, differ, AI analysis, briefs, alerts, battlecards, and predictions
-    models.py      SQLAlchemy application models
-    seed_demo.py   reproducible demo workspace seed
-frontend/
-  src/
-    pages/         landing, auth, dashboard, competitors, activity, briefs, and settings
-    components/   charts, cards, diffs, modals, logos, and layout
-n8n/
-  workflows/      Radar automation workflow export
-docs/             supporting project notes and references
+radar-intelligence/
+├── backend/                         # FastAPI REST API and intelligence pipeline
+│   ├── app/
+│   │   ├── routers/                 # auth, competitors, changes, briefs, stats, war room
+│   │   ├── services/                # crawler, differ, AI analysis, alerts, predictions
+│   │   ├── auth.py                  # Supabase JWT/session verification
+│   │   ├── database.py              # SQLAlchemy database session and configuration
+│   │   ├── models.py                # application data models
+│   │   ├── schemas.py               # request/response validation schemas
+│   │   ├── main.py                  # API application entrypoint
+│   │   └── seed_demo.py             # reproducible demo workspace seed
+│   ├── requirements.txt
+│   └── .env.example                 # backend configuration template
+├── frontend/                        # React + TypeScript product interface
+│   ├── src/
+│   │   ├── api/                     # API client, Supabase client, shared types
+│   │   ├── components/              # cards, charts, diffs, modals, logos, layout
+│   │   ├── context/                 # authentication and session state
+│   │   ├── pages/                   # landing, auth, dashboard, competitors, briefs, settings
+│   │   ├── App.tsx                  # route and application shell
+│   │   └── main.tsx                 # frontend entrypoint
+│   ├── public/                      # static assets
+│   └── .env.example                 # frontend configuration template
+├── n8n/
+│   ├── workflows/radar.json         # monitoring, briefs, and alert automation
+│   └── README.md                    # workflow setup notes
+├── docs/                            # supporting project documentation
+├── Radar-mocup.png                  # dashboard product mockup
+├── README.md
+└── .gitignore
 ```
 
 ## Run locally
